@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-GiaApplication<gia>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.spbutu.gia.GiaApplication",
+            "projectName": "gia",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

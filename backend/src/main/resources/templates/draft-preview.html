@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: "Times New Roman", Times, serif;
+            font-size: 11pt;
+            line-height: 1.4;
+            color: #000;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .preview-container {
+            max-width: 210mm;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20mm 15mm;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .doc-header {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .doc-header h1 {
+            font-size: 13pt;
+            font-weight: bold;
+        }
+        .doc-title {
+            text-align: center;
+            font-size: 12pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin: 16px 0;
+        }
+        .meta-table {
+            width: 100%;
+            margin: 8px 0;
+            border-collapse: collapse;
+        }
+        .meta-table td {
+            padding: 4px 0;
+            vertical-align: top;
+        }
+        .meta-label {
+            width: 35%;
+            font-size: 11pt;
+        }
+        .meta-value {
+            width: 65%;
+            font-size: 11pt;
+            font-style: italic;
+            border-bottom: 1px solid #000;
+            min-height: 18px;
+            padding: 0 4px;
+        }
+        .editable {
+            background-color: #fffbea;
+            outline: 2px dashed #f59e0b;
+            cursor: text;
+            padding: 2px 4px;
+        }
+        .editable:hover {
+            background-color: #fef3c7;
+        }
+        .readonly {
+            background-color: #f3f4f6;
+            padding: 2px 4px;
+        }
+        .info-bar {
+            background: #e0f2fe;
+            border: 1px solid #0284c7;
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin-bottom: 16px;
+            font-size: 10pt;
+            color: #0369a1;
+        }
+        .section-title {
+            font-size: 12pt;
+            font-weight: bold;
+            margin: 12px 0 6px;
+            text-transform: uppercase;
+        }
+        .placeholder-list {
+            margin-top: 8px;
+        }
+        .placeholder-row {
+            display: flex;
+            margin-bottom: 6px;
+            align-items: baseline;
+        }
+        .placeholder-key {
+            width: 40%;
+            font-size: 10pt;
+            color: #374151;
+            padding-right: 8px;
+        }
+        .placeholder-value {
+            flex: 1;
+            font-size: 11pt;
+            border-bottom: 1px solid #9ca3af;
+            min-height: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="preview-container">
+        <div class="info-bar">
+            <strong>Режим предпросмотра</strong> — тип документа: <span th:text="${documentType}">—</span>,
+            статус: <span th:text="${status}">—</span>
+        </div>
+
+        <div class="doc-header">
+            <h1>частное образовательное учреждение высшего образования</h1>
+            <h1>«САНКТ-ПЕТЕРБУРГСКИЙ УНИВЕРСИТЕТ ТЕХНОЛОГИЙ УПРАВЛЕНИЯ И ЭКОНОМИКИ»</h1>
+            <h1>Институт управления и информационных технологий</h1>
+        </div>
+
+        <div class="doc-title">
+            Предпросмотр документа
+        </div>
+
+        <div class="section-title">Редактируемые поля</div>
+        <div class="placeholder-list">
+            <div th:if="${placeholders != null}" th:each="entry : ${placeholders}" class="placeholder-row">
+                <div class="placeholder-key" th:text="${entry.key}">KEY</div>
+                <div class="placeholder-value">
+                    <span class="editable"
+                          th:attr="data-key=${entry.key}"
+                          th:text="${entry.value}"
+                          contenteditable="true">VALUE</span>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${placeholders == null or #maps.isEmpty(placeholders)}" class="placeholder-row">
+            <em>Нет доступных полей для редактирования.</em>
+        </div>
+    </div>
+</body>
+</html>

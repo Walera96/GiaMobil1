@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <style>
+        /* === БАЗОВЫЕ НАСТРОЙКИ СТРАНИЦЫ === */
+        @page {
+            size: A4 portrait;
+            margin: 10mm 10mm 10mm 15mm;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: "Times New Roman", Times, serif;
+            font-size: 11pt;
+            line-height: 1.0;
+            color: #000;
+        }
+
+        /* === ШАПКА С ЛОГОТИПОМ === */
+        .header {
+            position: relative;
+            margin-bottom: 8px;
+            min-height: 45mm;
+        }
+
+        .logo {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 35mm;
+            height: 35mm;
+        }
+
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .header-text {
+            margin-left: 40mm;
+            text-align: center;
+            padding-top: 5mm;
+        }
+
+        .org-status {
+            font-size: 13pt;
+            font-weight: bold;
+            text-transform: none;
+        }
+
+        .university-name {
+            font-size: 13pt;
+            font-weight: bold;
+        }
+
+        .institute-name {
+            font-size: 13pt;
+            font-weight: bold;
+        }
+
+        /* === ЗАГОЛОВОК ВЕДОМОСТИ === */
+        .doc-title {
+            text-align: center;
+            font-size: 12pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin: 12px 0;
+        }
+
+        .doc-number {
+            text-decoration: underline;
+        }
+
+        /* === ПОЛЯ МЕТАДАННЫХ === */
+        .meta-section {
+            margin: 8px 0;
+            width: 100%;
+        }
+
+        .meta-row {
+            display: table;
+            width: 100%;
+            margin-bottom: 4px;
+        }
+
+        .meta-label {
+            display: table-cell;
+            width: 35%;
+            font-size: 11pt;
+        }
+
+        .meta-value {
+            display: table-cell;
+            width: 65%;
+            font-size: 11pt;
+            font-style: italic;
+            border-bottom: 0.5pt solid #000;
+            padding-left: 5px;
+        }
+
+        .meta-value.bold {
+            font-weight: bold;
+        }
+
+        /* === ГРУППА/КУРС/ДАТА === */
+        .group-section {
+            margin: 10px 0;
+            display: table;
+            width: 100%;
+        }
+
+        .group-cell {
+            display: table-cell;
+            font-size: 12pt;
+        }
+
+        .group-cell .label {
+            font-weight: bold;
+        }
+
+        .group-cell .value {
+            font-weight: bold;
+            font-style: italic;
+            border-bottom: 0.5pt solid #000;
+            padding: 0 15px;
+        }
+
+        /* === ТАБЛИЦА СТУДЕНТОВ === */
+        .students-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+
+        .students-table th,
+        .students-table td {
+            border: 0.5pt solid #000;
+            padding: 3px 5px;
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        .students-table th {
+            font-size: 11pt;
+            font-weight: normal;
+        }
+
+        .students-table td.fio {
+            text-align: left;
+        }
+
+        .students-table .col-num { width: 8mm; }
+        .students-table .col-fio { width: 80mm; }
+        .students-table .col-book { width: 35mm; }
+        .students-table .col-points { width: 20mm; }
+        .students-table .col-classic { width: 30mm; }
+
+        /* === ПОДВАЛ === */
+        .footer-section {
+            margin-top: 15px;
+        }
+
+        .signature-row {
+            margin: 10px 0;
+            display: table;
+            width: 100%;
+        }
+
+        .signature-label {
+            display: table-cell;
+            font-size: 12pt;
+            font-weight: bold;
+            width: 45%;
+        }
+
+        .signature-line {
+            display: table-cell;
+            border-bottom: 0.5pt solid #000;
+            width: 55%;
+        }
+
+        /* === СТАТИСТИКА === */
+        .stats-section {
+            margin-top: 10px;
+            margin-left: auto;
+            width: 60%;
+            font-size: 8pt;
+        }
+
+        .stats-row {
+            display: table;
+            width: 100%;
+            margin-bottom: 2px;
+        }
+
+        .stats-label {
+            display: table-cell;
+            text-align: right;
+            padding-right: 10px;
+            font-style: italic;
+        }
+
+        .stats-label.plain {
+            font-style: normal;
+        }
+
+        .stats-value {
+            display: table-cell;
+            width: 80px;
+            border-bottom: 0.5pt solid #000;
+            text-align: center;
+        }
+
+        /* === ЧЛЕНЫ ГЭК === */
+        .members-section {
+            margin-top: 15px;
+        }
+
+        .members-title {
+            font-size: 12pt;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .member-line {
+            border-bottom: 0.5pt solid #000;
+            height: 18pt;
+            margin-bottom: 3px;
+        }
+    </style>
+</head>
+<body>
+    <!-- ШАПКА -->
+    <div class="header">
+        <div class="logo">
+            <img src="images/logo.png" alt="Логотип"/>
+        </div>
+        <div class="header-text">
+            <div class="org-status">частное образовательное учреждение высшего образования</div>
+            <div class="university-name">&laquo;САНКТ-ПЕТЕРБУРГСКИЙ УНИВЕРСИТЕТ</div>
+            <div class="university-name">ТЕХНОЛОГИЙ УПРАВЛЕНИЯ И ЭКОНОМИКИ&raquo;</div>
+            <div class="institute-name" th:text="${vedomost.instituteName}">Институт управления и информационных технологий</div>
+        </div>
+    </div>
+
+    <!-- ЗАГОЛОВОК -->
+    <div class="doc-title">
+        ВЕДОМОСТЬ ЗАЩИТЫ ВЫПУСКНЫХ КВАЛИФИКАЦИОННЫХ РАБОТ &#8470; <span class="doc-number" th:text="${vedomost.documentNumber}">319092</span>
+    </div>
+
+    <!-- МЕТАДАННЫЕ -->
+    <div class="meta-section">
+        <div class="meta-row">
+            <span class="meta-label">Учебный год</span>
+            <span class="meta-value bold" th:text="${vedomost.academicYear}">2025-2026</span>
+        </div>
+        <div class="meta-row">
+            <span class="meta-label">Направление</span>
+            <span class="meta-value" th:text="${vedomost.directionCode + ' ' + vedomost.directionShort}">09.03.03 ПИ</span>
+        </div>
+        <div class="meta-row">
+            <span class="meta-label">Кафедра</span>
+            <span class="meta-value" th:text="${vedomost.department}">Информационных технологий и математики</span>
+        </div>
+        <div class="meta-row">
+            <span class="meta-label">Форма ГИА</span>
+            <span class="meta-value" th:text="${vedomost.giaForm}">Выполнение и защита выпускной квалификационной работы</span>
+        </div>
+        <div class="meta-row">
+            <span class="meta-label">Председатель ГЭК</span>
+            <span class="meta-value" th:text="${chairmanFull}">&nbsp;</span>
+        </div>
+        <div class="meta-row">
+            <span class="meta-label">Члены ГЭК</span>
+            <span class="meta-value" th:text="${membersLine}">&nbsp;</span>
+        </div>
+    </div>
+
+    <!-- ГРУППА/КУРС/ДАТА -->
+    <div class="group-section">
+        <div class="group-cell">
+            <span class="label">Группа</span>
+            <span class="value" th:text="${vedomost.groupName}">ОУИТб-ПИ01-22-4</span>
+        </div>
+        <div class="group-cell">
+            <span class="label">Курс</span>
+            <span class="value" th:text="${vedomost.course}">4</span>
+        </div>
+        <div class="group-cell">
+            <span class="label">Дата</span>
+            <span class="value" th:text="${formattedDate}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+        </div>
+    </div>
+
+    <!-- ТАБЛИЦА СТУДЕНТОВ -->
+    <table class="students-table">
+        <thead>
+            <tr>
+                <th rowspan="2" class="col-num">&#8470;<br/>п/п</th>
+                <th rowspan="2" class="col-fio">Ф.И.О. студента</th>
+                <th rowspan="2" class="col-book">&#8470; зачетной книжки</th>
+                <th colspan="2">Оценка</th>
+            </tr>
+            <tr>
+                <th class="col-points">баллы</th>
+                <th class="col-classic">классическая</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="student : ${vedomost.students}">
+                <td th:text="${student.seqNumber}">1</td>
+                <td class="fio" th:text="${student.fullName}">ФИО студента</td>
+                <td th:text="${student.recordBookNumber}">0000000</td>
+                <td th:text="${student.scorePoints}">&nbsp;</td>
+                <td th:text="${student.scoreClassic}">&nbsp;</td>
+            </tr>
+            <!-- Пустые строки для дописки (если студентов < 25) -->
+            <tr th:if="${vedomost.students != null and vedomost.students.size() < 25}"
+                th:each="i : ${#numbers.sequence(vedomost.students.size() + 1, 25)}">
+                <td th:text="${i}">&nbsp;</td>
+                <td class="fio">&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- ДИРЕКТОР -->
+    <div class="signature-row">
+        <span class="signature-label">Директор института</span>
+        <span class="signature-line" th:text="${vedomost.directorName}">&nbsp;</span>
+    </div>
+
+    <!-- СТАТИСТИКА -->
+    <div class="stats-section">
+        <div class="stats-row">
+            <span class="stats-label plain">Число студентов, участвовавших в аттестации</span>
+            <span class="stats-value" th:text="${vedomost.totalStudents}">&nbsp;</span>
+        </div>
+        <div class="stats-row">
+            <span class="stats-label">из них получивших:</span>
+            <span class="stats-value">&nbsp;</span>
+        </div>
+        <div class="stats-row">
+            <span class="stats-label">&laquo;зачтено&raquo;</span>
+            <span class="stats-value" th:text="${vedomost.countZachteno}">&nbsp;</span>
+        </div>
+        <div class="stats-row">
+            <span class="stats-label">&laquo;не зачтено&raquo;</span>
+            <span class="stats-value" th:text="${vedomost.countNeZachteno}">&nbsp;</span>
+        </div>
+        <div class="stats-row">
+            <span class="stats-label">&laquo;отлично&raquo;</span>
+            <span class="stats-value" th:text="${vedomost.countOtlichno}">&nbsp;</span>
+        </div>
+        <div class="stats-row">
+            <span class="stats-label">&laquo;хорошо&raquo;</span>
+            <span class="stats-value" th:text="${vedomost.countHorosho}">&nbsp;</span>
+        </div>
+        <div class="stats-row">
+            <span class="stats-label">&laquo;удовлетворительно&raquo;</span>
+            <span class="stats-value" th:text="${vedomost.countUdov}">&nbsp;</span>
+        </div>
+        <div class="stats-row">
+            <span class="stats-label">&laquo;неудовлетворительно&raquo;</span>
+            <span class="stats-value" th:text="${vedomost.countNeud}">&nbsp;</span>
+        </div>
+        <div class="stats-row">
+            <span class="stats-label plain">Число студентов, не явившихся на ГИА</span>
+            <span class="stats-value" th:text="${vedomost.countAbsent}">&nbsp;</span>
+        </div>
+    </div>
+
+    <!-- ПРЕДСЕДАТЕЛЬ ГЭК -->
+    <div class="signature-row" style="margin-top: 15px;">
+        <span class="signature-label">Председатель ГЭК</span>
+        <span class="signature-line" th:text="${vedomost.chairmanName}">&nbsp;</span>
+    </div>
+
+    <!-- ЧЛЕНЫ ГЭК -->
+    <div class="members-section">
+        <div class="members-title">Члены ГЭК:</div>
+        <div class="member-line" th:each="member : ${vedomost.committeeMembers}" th:text="${member.fullName + ', ' + member.degree}">&nbsp;</div>
+        <div th:if="${vedomost.committeeMembers != null and vedomost.committeeMembers.size() < 5}"
+             th:each="i : ${#numbers.sequence(vedomost.committeeMembers.size() + 1, 5)}">
+            <div class="member-line">&nbsp;</div>
+        </div>
+    </div>
+</body>
+</html>

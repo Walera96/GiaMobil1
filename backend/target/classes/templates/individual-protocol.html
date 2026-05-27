@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <style>
+        @page { size: A4; margin: 20mm; }
+        body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.35; margin: 0; padding: 0; }
+        .header { text-align: center; font-weight: bold; font-size: 10pt; text-transform: uppercase; margin-bottom: 12px; }
+        .title { text-align: center; font-weight: bold; font-size: 12pt; margin: 16px 0 8px 0; }
+        .sub { text-align: center; font-size: 10pt; margin-bottom: 18px; }
+        .field { margin: 5px 0; }
+        .label { font-weight: bold; }
+        .section-title { font-weight: bold; margin-top: 14px; margin-bottom: 6px; font-size: 11pt; }
+        .decision { margin: 8px 0; padding: 6px; border: 1px solid #333; }
+        .signatures { margin-top: 30px; width: 100%; border-collapse: collapse; page-break-inside: avoid; }
+        .signatures td { padding: 10px 16px; border: none; vertical-align: top; width: 50%; }
+        .sign-line { border-bottom: 1px solid #000; display: inline-block; width: 200px; height: 20px; }
+        table.questions { width: 100%; border-collapse: collapse; margin: 8px 0; }
+        table.questions th, table.questions td { border: 1px solid #000; padding: 5px; text-align: left; font-size: 10pt; }
+        table.questions th { background: #f0f0f0; }
+        .materials { margin: 6px 0; padding-left: 20px; }
+        .materials li { margin: 2px 0; }
+        .with-honors { font-weight: bold; color: #006400; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        Частное образовательное учреждение высшего образования<br/>
+        Санкт-Петербургский университет<br/>
+        технологий управления и экономики
+    </div>
+
+    <div class="title">
+        ПРОТОКОЛ № <span th:text="${protocolNumber}">&nbsp;</span><br/>
+        заседания ГЭК<br/>
+        по проведению государственной итоговой аттестации<br/>
+        в форме защиты выпускной квалификационной работы
+    </div>
+
+    <div class="sub">
+        <span th:text="${meetingDateTime}">15.06.2026 г. с 10:00 до 16:00</span>
+    </div>
+
+    <div class="field"><span class="label">На тему:</span> <span th:text="${thesisTopic}">—</span></div>
+    <div class="field"><span class="label">студента(ки):</span> <span th:text="${studentName}">—</span></div>
+    <div class="field"><span class="label">Направление подготовки:</span> <span th:text="${directionCode + ' ' + directionName}">—</span></div>
+    <div class="field"><span class="label">Направленность (профиль):</span> <span th:text="${profileName}">—</span></div>
+    <div class="field"><span class="label">Руководитель ВКР:</span> <span th:text="${supervisorName}">—</span></div>
+
+    <div class="section-title">ГОСУДАРСТВЕННАЯ ЭКЗАМЕНАЦИОННАЯ КОМИССИЯ:</div>
+    <div class="field"><span class="label">Председатель ГЭК:</span> <span th:text="${chairmanName != null ? chairmanName : '—'}">—</span></div>
+    <div class="field"><span class="label">Члены ГЭК:</span> <span th:text="${membersList != null ? membersList : '—'}">—</span></div>
+    <div class="field"><span class="label">Секретарь ГЭК:</span> <span th:text="${secretaryName != null ? secretaryName : '—'}">—</span></div>
+    <div class="field" style="font-size: 9pt; margin-top: 4px;">Состав ГЭК утверждён приказом № ... от «...» .......... 20.. г.</div>
+
+    <div class="section-title">В ГЭК представлены следующие материалы:</div>
+    <ol class="materials">
+        <li>Приказ о допуске к ГИА.</li>
+        <li>Выпускная квалификационная работа на ... страницах.</li>
+        <li>Материалы презентации.</li>
+        <li>Отзыв руководителя ВКР.</li>
+        <li>Дополнительные материалы: _________________________________</li>
+    </ol>
+
+    <div class="section-title">Таблица вопросов</div>
+    <table class="questions">
+        <tr><th style="width:35%">ФИО лица, задавшего вопрос</th><th>Содержание вопросов</th></tr>
+        <tr><td>&nbsp;</td><td>&nbsp;</td></tr>
+        <tr><td>&nbsp;</td><td>&nbsp;</td></tr>
+        <tr><td>&nbsp;</td><td>&nbsp;</td></tr>
+        <tr><td>&nbsp;</td><td>&nbsp;</td></tr>
+        <tr><td>&nbsp;</td><td>&nbsp;</td></tr>
+        <tr><td>&nbsp;</td><td>&nbsp;</td></tr>
+    </table>
+
+    <div class="section-title">Общая характеристика ответов</div>
+    <div style="border-bottom: 1px solid #000; height: 40px;">&nbsp;</div>
+
+    <div class="section-title">РЕШЕНИЕ ГЭК:</div>
+    <div class="decision">
+        1. <span th:text="${decision}">Признать выполнившим и защитившим ВКР с оценкой ___</span>
+    </div>
+    <div class="decision">
+        2. Присвоить квалификацию <span th:text="${qualification}">—</span>
+        <span th:if="${isWithHonors}" class="with-honors">(с отличием)</span>
+        <span th:unless="${isWithHonors}">(без отличия)</span>
+    </div>
+    <div class="decision">
+        3. Отметить, что .................................................................
+    </div>
+    <div class="decision">
+        4. Особое мнение члена(ов) ГЭК: ..................................................
+    </div>
+
+    <table class="signatures">
+        <tr>
+            <td>Председатель ГЭК:<br/><span class="sign-line"></span></td>
+            <td>Секретарь ГЭК:<br/><span class="sign-line"></span></td>
+        </tr>
+    </table>
+</body>
+</html>

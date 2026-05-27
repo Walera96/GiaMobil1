@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <style>
+        @page { size: A4; margin: 20mm; }
+        body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.35; margin: 0; padding: 0; }
+        .header { text-align: center; font-weight: bold; font-size: 10pt; text-transform: uppercase; margin-bottom: 12px; }
+        .title { text-align: center; font-weight: bold; font-size: 12pt; margin: 16px 0 8px 0; }
+        .field { margin: 5px 0; }
+        .label { font-weight: bold; }
+        .section-title { font-weight: bold; margin-top: 14px; margin-bottom: 6px; font-size: 11pt; }
+        table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+        th, td { border: 1px solid #000; padding: 5px; text-align: left; font-size: 10pt; }
+        th { background: #f0f0f0; }
+        .signatures { margin-top: 30px; width: 100%; border-collapse: collapse; page-break-inside: avoid; }
+        .signatures td { padding: 10px 16px; border: none; vertical-align: top; width: 50%; }
+        .sign-line { border-bottom: 1px solid #000; display: inline-block; width: 200px; height: 20px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        Частное образовательное учреждение высшего образования<br/>
+        Санкт-Петербургский университет<br/>
+        технологий управления и экономики
+    </div>
+
+    <div class="title">
+        ИТОГОВЫЙ ПРОТОКОЛ № <span th:text="${protocolNumber}">&nbsp;</span><br/>
+        заседания государственной экзаменационной комиссии
+    </div>
+
+    <div class="field"><span class="label">Направление подготовки:</span> <span th:text="${directionCode != null ? directionCode : '—'} + ' ' + ${directionName != null ? directionName : '—'}">—</span></div>
+    <div class="field"><span class="label">Дата проведения:</span> <span th:text="${meetingDateTime}">—</span></div>
+    <div class="field"><span class="label">Председатель ГЭК:</span> <span th:text="${chairmanName != null ? chairmanName : '—'}">—</span></div>
+    <div class="field"><span class="label">Члены ГЭК:</span> <span th:text="${membersList != null ? membersList : '—'}">—</span></div>
+    <div class="field"><span class="label">Секретарь ГЭК:</span> <span th:text="${secretaryName != null ? secretaryName : '—'}">—</span></div>
+
+    <p>Заслушав защиты выпускных квалификационных работ, государственная экзаменационная комиссия <strong>ПОСТАНОВИЛА:</strong></p>
+
+    <div class="section-title">I. Защитившиеся</div>
+    <table>
+        <tr><th style="width:8%">№ п/п</th><th>ФИО студента</th><th style="width:15%">Оценка</th></tr>
+        <tr th:each="r, iter : ${presentRecords}">
+            <td th:text="${iter.index + 1}">1</td>
+            <td th:text="${r.student != null ? r.student.lastName + ' ' + r.student.firstName + ' ' + (r.student.middleName != null ? r.student.middleName : '') : '—'}">—</td>
+            <td th:text="${r.finalScore}">—</td>
+        </tr>
+    </table>
+
+    <div class="section-title">II. Не явившиеся</div>
+    <table>
+        <tr><th style="width:8%">№ п/п</th><th>ФИО студента</th></tr>
+        <tr th:each="r, iter : ${absentRecords}">
+            <td th:text="${iter.index + 1}">1</td>
+            <td th:text="${r.student != null ? r.student.lastName + ' ' + r.student.firstName + ' ' + (r.student.middleName != null ? r.student.middleName : '') : '—'}">—</td>
+        </tr>
+    </table>
+
+    <div class="section-title">III. Присвоение квалификации</div>
+    <table>
+        <tr><th style="width:8%">№ п/п</th><th>ФИО студента</th><th>Квалификация</th></tr>
+        <tr th:each="r, iter : ${allRecords}">
+            <td th:text="${iter.index + 1}">1</td>
+            <td th:text="${r.student != null ? r.student.lastName + ' ' + r.student.firstName + ' ' + (r.student.middleName != null ? r.student.middleName : '') : '—'}">—</td>
+            <td th:text="${r.qualification}">—</td>
+        </tr>
+    </table>
+
+    <table class="signatures">
+        <tr>
+            <td>Председатель ГЭК:<br/><span class="sign-line"></span></td>
+            <td>Секретарь ГЭК:<br/><span class="sign-line"></span></td>
+        </tr>
+    </table>
+</body>
+</html>

@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <style>
+        @page { size: A4 portrait; margin: 10mm 10mm 10mm 15mm; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: "Times New Roman", Times, serif;
+            font-size: 11pt;
+            line-height: 1.15;
+            color: #000;
+        }
+
+        /* ====== ШАПКА С ЛОГОТИПОМ ====== */
+        .header {
+            position: relative;
+            margin-bottom: 6px;
+            min-height: 72mm;
+        }
+        .logo {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 50mm;
+            height: 50mm;
+        }
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .header-text {
+            margin-left: 55mm;
+            text-align: center;
+            padding-top: 2mm;
+        }
+        .org-status {
+            font-size: 13pt;
+            font-weight: bold;
+        }
+        .university-name {
+            font-size: 13pt;
+            font-weight: bold;
+        }
+        .institute-name {
+            font-size: 13pt;
+            font-weight: bold;
+        }
+
+        /* ====== ЗАГОЛОВОК ДОКУМЕНТА ====== */
+        .doc-title {
+            text-align: center;
+            font-size: 12pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin: 10px 0 12px 0;
+        }
+        .doc-number {
+            text-decoration: underline;
+        }
+
+        /* ====== МЕТАДАННЫЕ ====== */
+        .meta-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 8px;
+        }
+        .meta-table td {
+            padding: 2px 4px;
+            vertical-align: bottom;
+        }
+        .meta-label {
+            width: 30%;
+            font-size: 11pt;
+            white-space: nowrap;
+        }
+        .meta-value {
+            width: 70%;
+            font-size: 11pt;
+            font-style: italic;
+            border-bottom: 0.5pt solid #000;
+            padding-left: 8px;
+        }
+        .meta-value.bold {
+            font-weight: bold;
+        }
+
+        /* ====== ГРУППА / КУРС / ДАТА ====== */
+        .group-line {
+            margin: 10px 0;
+            font-size: 12pt;
+            display: table;
+            width: 100%;
+        }
+        .group-item {
+            display: table-cell;
+            padding-right: 20px;
+        }
+        .group-item .label {
+            font-weight: bold;
+        }
+        .group-item .value {
+            font-weight: bold;
+            font-style: italic;
+            border-bottom: 0.5pt solid #000;
+            padding: 0 12px;
+        }
+
+        /* ====== ТАБЛИЦА СТУДЕНТОВ ====== */
+        .students-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            font-size: 11pt;
+        }
+        .students-table th, .students-table td {
+            border: 0.5pt solid #000;
+            padding: 3px 5px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        .students-table th {
+            font-weight: normal;
+        }
+        .students-table td.fio {
+            text-align: left;
+        }
+        .students-table .col-num { width: 6%; }
+        .students-table .col-fio { width: 40%; }
+        .students-table .col-book { width: 22%; }
+        .students-table .col-points { width: 14%; }
+        .students-table .col-classic { width: 18%; }
+
+        /* ====== ПОДПИСИ ====== */
+        .signature-block {
+            margin-top: 12px;
+        }
+        .signature-line {
+            display: table;
+            width: 100%;
+            margin-bottom: 8px;
+            font-size: 12pt;
+        }
+        .signature-label {
+            display: table-cell;
+            font-weight: bold;
+            width: 40%;
+            white-space: nowrap;
+        }
+        .signature-value {
+            display: table-cell;
+            border-bottom: 0.5pt solid #000;
+            width: 60%;
+            padding-left: 10px;
+        }
+
+        /* ====== СТАТИСТИКА ====== */
+        .stats-block {
+            margin-top: 10px;
+            margin-left: 40%;
+            width: 60%;
+            font-size: 8pt;
+        }
+        .stats-row {
+            display: table;
+            width: 100%;
+            margin-bottom: 2px;
+        }
+        .stats-label {
+            display: table-cell;
+            text-align: right;
+            padding-right: 8px;
+            font-style: italic;
+        }
+        .stats-label.header {
+            font-style: normal;
+        }
+        .stats-value {
+            display: table-cell;
+            width: 60px;
+            border-bottom: 0.5pt solid #000;
+            text-align: center;
+        }
+
+        /* ====== ЧЛЕНЫ ГЭК ====== */
+        .members-block {
+            margin-top: 12px;
+        }
+        .members-title {
+            font-size: 12pt;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .member-empty-line {
+            border-bottom: 0.5pt solid #000;
+            height: 16pt;
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ====== ШАПКА ====== -->
+<div class="header">
+    <div class="logo">
+        <img src="images/logo.png" alt="Логотип"/>
+    </div>
+    <div class="header-text">
+        <div class="org-status">частное образовательное учреждение высшего образования</div>
+        <div class="university-name">&laquo;САНКТ-ПЕТЕРБУРГСКИЙ УНИВЕРСИТЕТ</div>
+        <div class="university-name">ТЕХНОЛОГИЙ УПРАВЛЕНИЯ И ЭКОНОМИКИ&raquo;</div>
+        <div class="institute-name">Институт управления и информационных технологий</div>
+    </div>
+</div>
+
+<!-- ====== ЗАГОЛОВОК ====== -->
+<div class="doc-title">
+    ВЕДОМОСТЬ ЗАЩИТЫ ВЫПУСКНЫХ КВАЛИФИКАЦИОННЫХ РАБОТ
+    <span class="doc-number" th:text="'№ ' + ${protocolNumber}">№ 01/2026</span>
+</div>
+
+<!-- ====== МЕТАДАННЫЕ ====== -->
+<table class="meta-table">
+    <tr>
+        <td class="meta-label">Учебный год</td>
+        <td class="meta-value bold" th:text="${academicYear}">2025-2026</td>
+    </tr>
+    <tr>
+        <td class="meta-label">Направление</td>
+        <td class="meta-value" th:text="${directionCode + ' ' + directionName}">09.03.03 Прикладная информатика</td>
+    </tr>
+    <tr>
+        <td class="meta-label">Кафедра</td>
+        <td class="meta-value" th:text="${department}">Информационных технологий и математики</td>
+    </tr>
+    <tr>
+        <td class="meta-label">Форма ГИА</td>
+        <td class="meta-value" th:text="${giaForm}">Выполнение и защита выпускной квалификационной работы</td>
+    </tr>
+    <tr>
+        <td class="meta-label">Председатель ГЭК</td>
+        <td class="meta-value" th:text="${chairmanName != null and !chairmanName.isEmpty()} ? ${chairmanName} : '\u00A0'">&nbsp;</td>
+    </tr>
+    <tr>
+        <td class="meta-label">Члены ГЭК</td>
+        <td class="meta-value" th:text="${membersString != null and !membersString.isEmpty()} ? ${membersString} : '\u00A0'">&nbsp;</td>
+    </tr>
+</table>
+
+<!-- ====== ГРУППА / КУРС / ДАТА ====== -->
+<div class="group-line">
+    <span class="group-item">
+        <span class="label">Группа</span>
+        <span class="value" th:text="${groupName}">ОУИТб-ПИ01-22-4</span>
+    </span>
+    <span class="group-item">
+        <span class="label">Курс</span>
+        <span class="value" th:text="${course}">4</span>
+    </span>
+    <span class="group-item">
+        <span class="label">Дата</span>
+        <span class="value" th:text="${meetingDate}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+    </span>
+</div>
+
+<!-- ====== ТАБЛИЦА СТУДЕНТОВ ====== -->
+<table class="students-table">
+    <thead>
+        <tr>
+            <th rowspan="2" class="col-num">№<br/>п/п</th>
+            <th rowspan="2" class="col-fio">Ф.И.О. студента</th>
+            <th rowspan="2" class="col-book">№ зачетной<br/>книжки</th>
+            <th colspan="2">Оценка</th>
+        </tr>
+        <tr>
+            <th class="col-points">баллы</th>
+            <th class="col-classic">классическая</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="row : ${rows}">
+            <td th:text="${row.number()}">1</td>
+            <td class="fio" th:text="${row.studentFullName()}">Иванов И.И.</td>
+            <td th:text="${row.recordBookNumber()}">1222101</td>
+            <td th:text="${row.scorePoints()}">85</td>
+            <td th:text="${row.finalScore() != null and row.finalScore() == 5} ? 'отлично' : (${row.finalScore() != null and row.finalScore() == 4} ? 'хорошо' : (${row.finalScore() != null and row.finalScore() == 3} ? 'удовлетворительно' : (${row.finalScore() != null and row.finalScore() == 2} ? 'неудовлетворительно' : ${row.result()})))">хорошо</td>
+        </tr>
+        <tr th:if="${rows != null and rows.size() < 25}" th:each="i : ${#numbers.sequence(rows.size() + 1, 25)}">
+            <td th:text="${i}">&nbsp;</td>
+            <td class="fio">&nbsp;</td>
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- ====== ДИРЕКТОР ====== -->
+<div class="signature-block">
+    <div class="signature-line">
+        <span class="signature-label">Директор института</span>
+        <span class="signature-value">&nbsp;</span>
+    </div>
+</div>
+
+<!-- ====== СТАТИСТИКА ====== -->
+<div class="stats-block">
+    <div class="stats-row">
+        <span class="stats-label header">Число студентов, участвовавших в аттестации</span>
+        <span class="stats-value" th:text="${stats != null ? stats.totalStudents() : ''}">&nbsp;</span>
+    </div>
+    <div class="stats-row">
+        <span class="stats-label">из них получивших:</span>
+        <span class="stats-value">&nbsp;</span>
+    </div>
+    <div class="stats-row">
+        <span class="stats-label">&laquo;зачтено&raquo;</span>
+        <span class="stats-value" th:text="${stats != null ? stats.presentCount() - stats.unsatisfactoryCount() : ''}">&nbsp;</span>
+    </div>
+    <div class="stats-row">
+        <span class="stats-label">&laquo;не зачтено&raquo;</span>
+        <span class="stats-value" th:text="${stats != null ? stats.unsatisfactoryCount() : ''}">&nbsp;</span>
+    </div>
+    <div class="stats-row">
+        <span class="stats-label">&laquo;отлично&raquo;</span>
+        <span class="stats-value" th:text="${stats != null ? stats.excellentCount() : ''}">&nbsp;</span>
+    </div>
+    <div class="stats-row">
+        <span class="stats-label">&laquo;хорошо&raquo;</span>
+        <span class="stats-value" th:text="${stats != null ? stats.goodCount() : ''}">&nbsp;</span>
+    </div>
+    <div class="stats-row">
+        <span class="stats-label">&laquo;удовлетворительно&raquo;</span>
+        <span class="stats-value" th:text="${stats != null ? stats.satisfactoryCount() : ''}">&nbsp;</span>
+    </div>
+    <div class="stats-row">
+        <span class="stats-label">&laquo;неудовлетворительно&raquo;</span>
+        <span class="stats-value" th:text="${stats != null ? stats.unsatisfactoryCount() : ''}">&nbsp;</span>
+    </div>
+    <div class="stats-row">
+        <span class="stats-label header">Число студентов, не явившихся на ГИА</span>
+        <span class="stats-value" th:text="${stats != null ? stats.absentCount() : ''}">&nbsp;</span>
+    </div>
+</div>
+
+<!-- ====== ПРЕДСЕДАТЕЛЬ ГЭК ====== -->
+<div class="signature-block" style="margin-top: 15px;">
+    <div class="signature-line">
+        <span class="signature-label">Председатель ГЭК</span>
+        <span class="signature-value" th:text="${chairmanName != null and !chairmanName.isEmpty()} ? ${chairmanName} : '\u00A0'">&nbsp;</span>
+    </div>
+</div>
+
+<!-- ====== ЧЛЕНЫ ГЭК ====== -->
+<div class="members-block">
+    <div class="members-title">Члены ГЭК:</div>
+    <div class="member-empty-line" th:each="m : ${membersList}" th:text="${m}">&nbsp;</div>
+    <div class="member-empty-line" th:if="${membersList == null or membersList.size() < 5}" th:each="i : ${#numbers.sequence((membersList != null ? membersList.size() : 0) + 1, 5)}">&nbsp;</div>
+</div>
+
+</body>
+</html>

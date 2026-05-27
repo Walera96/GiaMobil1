@@ -1,0 +1,56 @@
+# ============================================================
+# Docker Compose для локальной разработки ВКР
+# ЧОУ ВО СПбУТУИЭ — ГИА
+# Поднимает: PostgreSQL 15, Redis 7, pgAdmin 4
+# Команда запуска: docker compose up -d
+# ============================================================
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: gia-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: gia_db
+      POSTGRES_USER: gia_user
+      POSTGRES_PASSWORD: gia_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gia_user -d gia_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: gia-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: gia-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@spbutu.ru
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:

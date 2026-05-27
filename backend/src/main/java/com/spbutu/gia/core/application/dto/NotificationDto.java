@@ -1,0 +1,14 @@
+package com.spbutu.gia.core.application.dto;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+public record NotificationDto(
+        UUID id,
+        String title,
+        String message,
+        String type,
+        boolean read,
+        LocalDateTime createdAt
+) {
+}

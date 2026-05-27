@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <style>
+        @page { size: A4 landscape; margin: 15mm; }
+        body { font-family: Arial, sans-serif; font-size: 10pt; line-height: 1.25; margin: 0; padding: 0; }
+        .header { text-align: center; font-weight: bold; font-size: 9pt; text-transform: uppercase; margin-bottom: 6px; }
+        .institute { text-align: center; font-weight: bold; font-size: 10pt; margin-bottom: 10px; }
+        .title { text-align: center; font-weight: bold; font-size: 11pt; margin: 10px 0 6px 0; }
+        .info-table { width: 100%; margin: 6px 0; border-collapse: collapse; }
+        .info-table td { padding: 2px 6px; border: none; text-align: left; font-size: 9pt; }
+        .info-table .label { font-weight: bold; width: 30%; }
+        table.data { width: 100%; border-collapse: collapse; margin: 8px 0; }
+        table.data th, table.data td { border: 1.5px solid #000; padding: 4px; text-align: center; font-size: 9pt; }
+        table.data th { background: #e8e8e8; }
+        table.data td.left { text-align: left; }
+        .stats { margin-top: 10px; font-size: 9pt; }
+        .stats p { margin: 2px 0; }
+        .stats .indent { margin-left: 20px; }
+        .signatures { margin-top: 20px; width: 100%; border-collapse: collapse; page-break-inside: avoid; }
+        .signatures td { border: none; padding: 8px 12px; vertical-align: top; width: 33%; }
+        .sign-line { border-bottom: 1px solid #000; display: inline-block; width: 160px; height: 16px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        Частное образовательное учреждение высшего образования<br/>
+        Санкт-Петербургский университет технологий управления и экономики
+    </div>
+    <div class="institute">Институт управления и информационных технологий</div>
+
+    <div class="title">
+        ВЕДОМОСТЬ ЗАЩИТЫ ВЫПУСКНЫХ КВАЛИФИКАЦИОННЫХ РАБОТ № <span th:text="${protocolNumber}">—</span>
+    </div>
+
+    <table class="info-table">
+        <tr><td class="label">Учебный год:</td><td>2025–2026</td><td class="label">Направление:</td><td><span th:text="${directionCode}">—</span> <span th:text="${directionName}">—</span></td></tr>
+        <tr><td class="label">Кафедра:</td><td>Информационных технологий и математики</td><td class="label">Форма ГИА:</td><td>Выполнение и защита ВКР</td></tr>
+        <tr><td class="label">Председатель ГЭК:</td><td th:text="${chairmanName != null ? chairmanName : '—'}">—</td><td class="label">Члены ГЭК:</td><td th:text="${membersList != null ? membersList : '—'}">—</td></tr>
+        <tr><td class="label">Группа:</td><td th:text="${groupName}">—</td><td class="label">Дата:</td><td th:text="${meetingDate}">—</td></tr>
+    </table>
+
+    <table class="data">
+        <tr>
+            <th style="width:6%">№ п/п</th>
+            <th style="width:28%">Ф.И.О. студента</th>
+            <th style="width:18%">№ зачетной книжки</th>
+            <th style="width:14%">Оценка (баллы)</th>
+            <th style="width:14%">Оценка (классическая)</th>
+            <th style="width:20%">Результат</th>
+        </tr>
+        <tr th:each="row : ${rows}">
+            <td th:text="${row.number()}">1</td>
+            <td class="left" th:text="${row.fullName()}">—</td>
+            <td th:text="${row.recordBookNumber()}">—</td>
+            <td th:text="${row.scorePoints()}">—</td>
+            <td th:text="${row.finalScore()}">—</td>
+            <td th:text="${row.result()}">—</td>
+        </tr>
+    </table>
+
+    <div class="stats">
+        <p><span class="label">Число студентов, участвовавших в аттестации:</span> <b th:text="${stats.totalStudents()}">0</b></p>
+        <p>из них получивших:</p>
+        <p class="indent">«зачтено» <b th:text="${stats.presentCount()}">0</b>, «не зачтено» <b th:text="${stats.unsatisfactoryCount()}">0</b></p>
+        <p class="indent">«отлично» <b th:text="${stats.excellentCount()}">0</b>, «хорошо» <b th:text="${stats.goodCount()}">0</b>, «удовлетворительно» <b th:text="${stats.satisfactoryCount()}">0</b>, «неудовлетворительно» <b th:text="${stats.unsatisfactoryCount()}">0</b></p>
+        <p><span class="label">Число студентов, не явившихся на ГИА:</span> <b th:text="${stats.absentCount()}">0</b></p>
+    </div>
+
+    <table class="signatures">
+        <tr>
+            <td>Директор института:<br/><span class="sign-line"></span></td>
+            <td>Председатель ГЭК:<br/><span class="sign-line"></span></td>
+            <td>Секретарь ГЭК:<br/><span class="sign-line"></span></td>
+        </tr>
+    </table>
+</body>
+</html>

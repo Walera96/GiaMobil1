@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <style>
+        @page { size: A4; margin: 15mm 15mm 15mm 20mm; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: "Times New Roman", Times, serif;
+            font-size: 12pt;
+            line-height: 1.3;
+            color: #000;
+        }
+
+        /* ====== ШАПКА ====== */
+        .header {
+            position: relative;
+            margin-bottom: 6px;
+            min-height: 60mm;
+        }
+        .logo {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 45mm;
+            height: 45mm;
+        }
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .header-text {
+            margin-left: 50mm;
+            text-align: center;
+            padding-top: 2mm;
+        }
+        .org-status {
+            font-size: 13pt;
+            font-weight: bold;
+        }
+        .university-name {
+            font-size: 13pt;
+            font-weight: bold;
+        }
+        .institute-name {
+            font-size: 13pt;
+            font-weight: bold;
+        }
+
+        /* ====== ЗАГОЛОВОК ====== */
+        .doc-title {
+            text-align: center;
+            font-size: 12pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin: 10px 0 4px 0;
+        }
+        .doc-number {
+            text-decoration: underline;
+        }
+        .doc-subtitle {
+            text-align: center;
+            font-size: 12pt;
+            margin-bottom: 10px;
+        }
+
+        /* ====== МЕТАДАННЫЕ ====== */
+        .meta-paragraph {
+            margin: 4px 0;
+            font-size: 12pt;
+        }
+        .meta-paragraph span {
+            border-bottom: 0.5pt solid #000;
+            padding: 0 4px;
+        }
+
+        /* ====== ГЭК ====== */
+        .gek-block {
+            margin-top: 10px;
+        }
+        .gek-title {
+            font-weight: bold;
+            font-size: 12pt;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        .gek-line {
+            margin: 2px 0;
+            font-size: 12pt;
+        }
+
+        /* ====== РЕШЕНИЕ ====== */
+        .resolution-intro {
+            margin-top: 12px;
+            font-weight: bold;
+            font-size: 12pt;
+        }
+        .section-title {
+            font-weight: bold;
+            margin-top: 10px;
+            font-size: 12pt;
+        }
+
+        /* ====== ТАБЛИЦЫ ====== */
+        .bordered-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 8px 0;
+            font-size: 11pt;
+        }
+        .bordered-table th, .bordered-table td {
+            border: 0.5pt solid #000;
+            padding: 4px 6px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        .bordered-table th {
+            font-weight: normal;
+        }
+        .bordered-table td.left {
+            text-align: left;
+        }
+
+        /* ====== ПОДПИСИ ====== */
+        .signatures {
+            margin-top: 20px;
+            font-size: 12pt;
+        }
+        .sign-line {
+            margin: 6px 0;
+        }
+        .sign-line span {
+            border-bottom: 0.5pt solid #000;
+            padding: 0 20px;
+        }
+
+        /* ====== РАЗРЫВ СТРАНИЦЫ ====== */
+        .page-break {
+            page-break-before: always;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ====== ШАПКА ====== -->
+<div class="header">
+    <div class="logo">
+        <img src="images/logo.png" alt="Логотип"/>
+    </div>
+    <div class="header-text">
+        <div class="org-status">частное образовательное учреждение высшего образования</div>
+        <div class="university-name">&laquo;САНКТ-ПЕТЕРБУРГСКИЙ УНИВЕРСИТЕТ</div>
+        <div class="university-name">ТЕХНОЛОГИЙ УПРАВЛЕНИЯ И ЭКОНОМИКИ&raquo;</div>
+        <div class="institute-name">Институт управления и информационных технологий</div>
+    </div>
+</div>
+
+<!-- ====== ЗАГОЛОВОК ====== -->
+<div class="doc-title">
+    ИТОГОВЫЙ ПРОТОКОЛ
+    <span class="doc-number" th:text="'№ ' + ${protocolNumber}">№ 01/2026-ПИ</span>
+</div>
+<div class="doc-subtitle">
+    <div>заседания государственной экзаменационной комиссии</div>
+    <div>по проведению государственной итоговой аттестации</div>
+    <div>в форме защиты выпускной квалификационной работы</div>
+</div>
+
+<!-- ====== МЕТАДАННЫЕ ====== -->
+<div class="meta-paragraph">
+    Направление подготовки: <span th:text="${directionCode + ' ' + directionName}">09.03.03 Прикладная информатика</span>
+</div>
+<div class="meta-paragraph">
+    Направленность (профиль): <span th:text="${profileName}">Прикладная информатика в экономике</span>
+</div>
+<div class="meta-paragraph">
+    &laquo;<span th:text="${meetingDay}">15</span>&raquo;
+    <span th:text="${meetingMonth}">июня</span>
+    <span th:text="${meetingYear}">2026</span> г.
+    с <span th:text="${startTime}">10:00</span> до <span th:text="${endTime}">16:00</span>
+</div>
+
+<!-- ====== ГЭК ====== -->
+<div class="gek-block">
+    <div class="gek-title">Государственная экзаменационная комиссия:</div>
+    <div class="gek-line">Председатель: <span th:text="${chairmanName != null and !chairmanName.isEmpty()} ? ${chairmanName} : '\u00A0'" style="border-bottom: 0.5pt solid #000; padding: 0 10px;">&nbsp;</span></div>
+    <div class="gek-line">Члены ГЭК: <span th:text="${membersString != null and !membersString.isEmpty()} ? ${membersString} : '\u00A0'" style="border-bottom: 0.5pt solid #000; padding: 0 10px;">&nbsp;</span></div>
+    <div class="gek-line">Секретарь ГЭК: <span th:text="${secretaryName != null and !secretaryName.isEmpty()} ? ${secretaryName} : '\u00A0'" style="border-bottom: 0.5pt solid #000; padding: 0 10px;">&nbsp;</span></div>
+    <div class="gek-line">Состав ГЭК утвержден приказом №______ от &laquo;___&raquo; ____________ 20__ г.</div>
+</div>
+
+<!-- ====== ПОСТАНОВЛЕНИЕ ====== -->
+<div class="resolution-intro">
+    Заслушав защиты выпускных квалификационных работ, отзывы руководителей, ответы на заданные вопросы и пр., комиссия <b>ПОСТАНОВИЛА:</b>
+</div>
+
+<!-- ====== РАЗДЕЛ I ====== -->
+<div class="section-title">
+    I. Признать, что перечисленные ниже студенты/экстерны выполнили и защитили выпускные квалификационные работы с оценками:
+</div>
+<table class="bordered-table">
+    <thead>
+        <tr>
+            <th style="width: 8%;">№ п/п</th>
+            <th style="width: 50%;" class="left">Ф.И.О. студента</th>
+            <th style="width: 20%;">Оценка</th>
+            <th style="width: 22%;" class="left">Квалификация</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="s, iter : ${presentStudents}">
+            <td th:text="${iter.count}">1</td>
+            <td class="left" th:text="${s.studentFullName}">...</td>
+            <td th:text="${s.finalScore != null and s.finalScore == 5} ? 'отлично' : (${s.finalScore != null and s.finalScore == 4} ? 'хорошо' : (${s.finalScore != null and s.finalScore == 3} ? 'удовлетворительно' : (${s.finalScore != null and s.finalScore == 2} ? 'неудовлетворительно' : ${s.finalScore})))">отлично</td>
+            <td class="left" th:text="${s.qualification != null and !s.qualification.isEmpty()} ? ${s.qualification} : 'бакалавр'">...</td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- ====== РАЗДЕЛ II ====== -->
+<div class="section-title">
+    II. Признать, что на защиту ВКР не явились следующие студенты/экстерны:
+</div>
+<table class="bordered-table" style="width: 70%;">
+    <thead>
+        <tr>
+            <th style="width: 10%;">№ п/п</th>
+            <th class="left">Ф.И.О. студента</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="s, iter : ${absentStudents}">
+            <td th:text="${iter.count}">1</td>
+            <td class="left" th:text="${s.studentFullName}">...</td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- ====== РАЗДЕЛ III ====== -->
+<div class="section-title">
+    III. Присвоить перечисленным студентам/экстернам квалификацию бакалавр по направлению подготовки <span th:text="${directionName}">...</span> и выдать документ о высшем образовании и о квалификации образца, установленного Министерством науки и высшего образования Российской Федерации:
+</div>
+
+<!-- Таблица квалификаций — продолжается на странице 2 -->
+<div class="page-break"></div>
+
+<table class="bordered-table" style="page-break-inside: avoid;">
+    <thead>
+        <tr>
+            <th style="width: 8%;">№ п/п</th>
+            <th style="width: 50%;" class="left">Ф.И.О. студента</th>
+            <th style="width: 42%;" class="left">Квалификация</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="s, iter : ${allStudents}">
+            <td th:text="${iter.count}">1</td>
+            <td class="left" th:text="${s.studentFullName}">...</td>
+            <td class="left" th:text="${s.qualification != null and !s.qualification.isEmpty()} ? ${s.qualification} : 'бакалавр'">...</td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- ====== ПОДПИСИ ====== -->
+<div class="signatures">
+    <div class="sign-line">Председатель ГЭК <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> <span th:text="${chairmanName != null and !chairmanName.isEmpty()} ? ${chairmanName} : ''">...</span></div>
+    <div class="sign-line">Секретарь ГЭК   <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> <span th:text="${secretaryName != null and !secretaryName.isEmpty()} ? ${secretaryName} : ''">...</span></div>
+</div>
+
+</body>
+</html>

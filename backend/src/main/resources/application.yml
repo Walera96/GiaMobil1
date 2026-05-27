@@ -1,0 +1,87 @@
+# ============================================================
+# Основной конфигурационный файл Spring Boot
+# Профили: dev (локальная разработка), prod (продакшн)
+# ============================================================
+
+spring:
+  application:
+    name: gia
+
+  profiles:
+    active: dev
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/gia_db
+    username: gia_user
+    password: gia_password
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate  # Не создаём схему — управляем через Flyway
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          batch_size: 20
+    show-sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+      timeout: 2000ms
+
+server:
+  port: 8090
+  servlet:
+    context-path: /api
+
+# JWT настройки (шаг 3)
+jwt:
+  secret: ${JWT_SECRET:Z2lhLXNlY3JldC1rZXktZm9yLWp3dC1zaWduaW5nLWF0LWdpYS1hcHAtc3BidXR1}
+  access-expiration: 900000      # 15 минут (мс)
+  refresh-expiration: 604800000  # 7 дней (мс)
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.flywaydb: DEBUG
+
+---
+# ============================================================
+# Профиль PROD
+# ============================================================
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://postgres:5432/gia_db}
+    username: ${DATABASE_USER:gia_user}
+    password: ${DATABASE_PASS:gia_password}
+
+  jpa:
+    show-sql: false
+
+  flyway:
+    enabled: true
+
+server:
+  port: ${PORT:8080}
+
+jwt:
+  secret: ${JWT_SECRET}

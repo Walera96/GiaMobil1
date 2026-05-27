@@ -1,0 +1,116 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>Протокол ГЭК</title>
+    <style type="text/css">
+        body {
+            font-family: "Times New Roman", Times, serif;
+            font-size: 12pt;
+            line-height: 1.5;
+            margin: 2cm;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 16pt;
+            text-transform: uppercase;
+            margin: 0;
+        }
+        .header h2 {
+            font-size: 14pt;
+            margin: 10px 0 0 0;
+        }
+        .info {
+            margin-bottom: 20px;
+        }
+        .info p {
+            margin: 5px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        .signatures {
+            margin-top: 40px;
+            width: 100%;
+        }
+        .signatures td {
+            border: none;
+            padding-top: 30px;
+            width: 50%;
+            vertical-align: top;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 10pt;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Протокол заседания ГЭК</h1>
+        <h2>№ <span th:text="${protocolNumber}">000</span></h2>
+    </div>
+
+    <div class="info">
+        <p><strong>ГЭК:</strong> <span th:text="${gekName}">Название ГЭК</span></p>
+        <p><strong>Дата заседания:</strong> <span th:text="${meetingDate}">01.01.2024</span></p>
+        <p><strong>Место проведения:</strong> <span th:text="${location}">Ауд. 101</span></p>
+        <p><strong>Статус:</strong> <span th:text="${status}">Черновик</span></p>
+    </div>
+
+    <p><strong>Повестка заседания:</strong></p>
+    <table>
+        <thead>
+            <tr>
+                <th>№ п/п</th>
+                <th>ФИО студента</th>
+                <th>Группа</th>
+                <th>Средняя оценка</th>
+                <th>Итоговая оценка</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="record, iter : ${records}">
+                <td th:text="${iter.count}">1</td>
+                <td th:text="${record.studentName}">Иванов И.И.</td>
+                <td th:text="${record.groupName}">ИС-101</td>
+                <td th:text="${record.averageScore}">4</td>
+                <td th:text="${record.finalScore}">4</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table class="signatures">
+        <tr>
+            <td>
+                <p>Председатель ГЭК:</p>
+                <p>__________________ / __________________</p>
+            </td>
+            <td>
+                <p>Секретарь ГЭК:</p>
+                <p>__________________ / __________________</p>
+            </td>
+        </tr>
+    </table>
+
+    <div class="footer">
+        <p>Дата формирования: <span th:text="${generatedAt}">01.01.2024</span></p>
+        <p>Система автоматизации учета ГИА — ЧОУ ВО СПбУТУИЭ</p>
+    </div>
+</body>
+</html>

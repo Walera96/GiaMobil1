@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: gia-postgres-prod
+    environment:
+      POSTGRES_DB: gia_db
+      POSTGRES_USER: gia_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-gia_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - gia-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gia_user -d gia_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: gia-redis-prod
+    networks:
+      - gia-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: gia-backend-prod
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/gia_db
+      SPRING_DATASOURCE_USERNAME: gia_user
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-gia_password}
+      SPRING_REDIS_HOST: redis
+      JWT_SECRET: ${JWT_SECRET:-gia-super-secret-key-2024-change-in-production}
+    ports:
+      - "${BACKEND_PORT:-8090}:8090"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - gia-network
+
+  frontend:
+    build:
+      context: ./frontend-web
+      dockerfile: Dockerfile
+    container_name: gia-frontend-prod
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    depends_on:
+      - backend
+    networks:
+      - gia-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: gia-nginx-prod
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - gia-network
+
+volumes:
+  postgres_data:
+
+networks:
+  gia-network:
+    driver: bridge
