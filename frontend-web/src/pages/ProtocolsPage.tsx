@@ -198,7 +198,7 @@ export const ProtocolsPage: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  {(hasRole('SECRETARY') || hasRole('DEAN')) && p.meetingId && (
+                  {(hasRole('GEK_SECRETARY') || hasRole('DEAN')) && p.meetingId && (
                     <Button
                       size="sm"
                       variant="ghost"
@@ -269,7 +269,7 @@ export const ProtocolsPage: React.FC = () => {
                 <Download size={14} className="mr-1.5" />
                 Ведомость DOCX
               </Button>
-              {(hasRole('SECRETARY') || hasRole('ADMIN')) && (
+              {(hasRole('GEK_SECRETARY') || hasRole('SYSTEM_ADMIN')) && (
                 <Button
                   size="sm"
                   variant="secondary"
@@ -279,7 +279,7 @@ export const ProtocolsPage: React.FC = () => {
                   Предпросмотр
                 </Button>
               )}
-              {hasRole('CHAIRMAN') && protocol.status === 'DRAFT' && (
+              {hasRole('GEK_CHAIRMAN') && protocol.status === 'DRAFT' && (
                 <Button size="sm" onClick={handleApprove}>
                   <CheckCircle2 size={14} className="mr-1.5" />
                   Утвердить

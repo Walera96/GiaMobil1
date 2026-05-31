@@ -21,20 +21,14 @@ export const LoginPage: React.FC = () => {
     setLoading(true);
     try {
       const { data } = await authApi.login({ username, password });
-      // Determine role by username (until backend returns role in login response)
-      const roleMap: Record<string, string> = {
-        admin: 'ADMIN',
-        methodist: 'METHODIST',
-        secretary: 'SECRETARY',
-        chairman: 'CHAIRMAN',
-        member1: 'GEK_MEMBER',
-        member2: 'GEK_MEMBER',
-        member3: 'GEK_MEMBER',
-        member4: 'GEK_MEMBER',
-      };
-      const role = roleMap[username] || 'GEK_MEMBER';
-      const user = { id: username, username, fullName: username, role };
-      login(data.accessToken, data.refreshToken, role, user);
+      login(
+        data.accessToken,
+        data.refreshToken,
+        data.user,
+        data.roles,
+        data.availablePortals,
+        data.primaryPortal
+      );
       navigate('/');
     } catch (err: any) {
       if (!err.response) {

@@ -1,0 +1,2521 @@
+From b3ed9e5611d8eb1b6ad41379dba3a1309f1545ca Mon Sep 17 00:00:00 2001
+From: GIA Refactor <refactor@gia.local>
+Date: Thu, 28 May 2026 08:34:54 +0800
+Subject: [PATCH] refactor: modular portals architecture
+
+- Add 12 UserRole enum with portal mapping
+- AppUser: Set<UserRole>, departmentId, studyGroupId, primaryPortal
+- CustomUserDetails: multi-role authorities
+- SecurityConfig: /portal/* routing with role checks
+- AuthController: returns roles[], availablePortals[], primaryPortal
+- 6 portal controllers: gek, deanery, department, admin, methodist, student
+- Frontend: authStore with multi-role support
+- PortalSelector: post-login portal selection screen
+- 6 portal Apps with dedicated sidebars
+- Sidebar: grouped by portal sections
+---
+ .../gia/auth/domain/entity/AppUser.java       | 120 ++++++++++++++-
+ .../gia/auth/domain/enums/UserRole.java       |  87 ++++++++++-
+ .../infrastructure/config/SecurityConfig.java | 119 +++++++++------
+ .../security/CustomUserDetails.java           | 120 +++++++++++++++
+ .../spbutu/gia/auth/web/AuthController.java   | 139 +++++++++++++++---
+ .../admin/web/PortalAdminController.java      |  67 +++++++++
+ .../deanery/web/PortalDeaneryController.java  |  55 +++++++
+ .../web/PortalDepartmentController.java       |  51 +++++++
+ .../gek/web/PortalGekMeetingController.java   |  56 +++++++
+ .../gek/web/PortalGekProtocolController.java  |  56 +++++++
+ .../gek/web/PortalGekVotingController.java    |  44 ++++++
+ .../web/PortalMethodistController.java        |  53 +++++++
+ .../student/web/PortalStudentController.java  |  68 +++++++++
+ frontend-web/src/App.tsx                      | 118 ++++++++++-----
+ .../src/components/PortalSelector.tsx         | 107 ++++++++++++++
+ .../src/components/layout/Sidebar.tsx         | 136 ++++++++++++-----
+ frontend-web/src/portals/portal-admin/App.tsx |  34 +++++
+ .../portal-admin/components/AdminSidebar.tsx  |  61 ++++++++
+ .../src/portals/portal-deanery/App.tsx        |  34 +++++
+ .../components/DeanerySidebar.tsx             |  62 ++++++++
+ .../src/portals/portal-department/App.tsx     |  32 ++++
+ .../components/DepartmentSidebar.tsx          |  60 ++++++++
+ frontend-web/src/portals/portal-gek/App.tsx   |  39 +++++
+ .../portal-gek/components/GekSidebar.tsx      |  62 ++++++++
+ .../portal-gek/pages/GekDashboardPage.tsx     |   8 +
+ .../src/portals/portal-methodist/App.tsx      |  36 +++++
+ .../components/MethodistSidebar.tsx           |  61 ++++++++
+ .../src/portals/portal-student/App.tsx        |  33 +++++
+ .../components/StudentSidebar.tsx             |  58 ++++++++
+ frontend-web/src/store/authStore.ts           | 116 ++++++++++++---
+ 30 files changed, 1922 insertions(+), 170 deletions(-)
+ create mode 100644 backend/src/main/java/com/spbutu/gia/auth/infrastructure/security/CustomUserDetails.java
+ create mode 100644 backend/src/main/java/com/spbutu/gia/portal/admin/web/PortalAdminController.java
+ create mode 100644 backend/src/main/java/com/spbutu/gia/portal/deanery/web/PortalDeaneryController.java
+ create mode 100644 backend/src/main/java/com/spbutu/gia/portal/department/web/PortalDepartmentController.java
+ create mode 100644 backend/src/main/java/com/spbutu/gia/portal/gek/web/PortalGekMeetingController.java
+ create mode 100644 backend/src/main/java/com/spbutu/gia/portal/gek/web/PortalGekProtocolController.java
+ create mode 100644 backend/src/main/java/com/spbutu/gia/portal/gek/web/PortalGekVotingController.java
+ create mode 100644 backend/src/main/java/com/spbutu/gia/portal/methodist/web/PortalMethodistController.java
+ create mode 100644 backend/src/main/java/com/spbutu/gia/portal/student/web/PortalStudentController.java
+ create mode 100644 frontend-web/src/components/PortalSelector.tsx
+ create mode 100644 frontend-web/src/portals/portal-admin/App.tsx
+ create mode 100644 frontend-web/src/portals/portal-admin/components/AdminSidebar.tsx
+ create mode 100644 frontend-web/src/portals/portal-deanery/App.tsx
+ create mode 100644 frontend-web/src/portals/portal-deanery/components/DeanerySidebar.tsx
+ create mode 100644 frontend-web/src/portals/portal-department/App.tsx
+ create mode 100644 frontend-web/src/portals/portal-department/components/DepartmentSidebar.tsx
+ create mode 100644 frontend-web/src/portals/portal-gek/App.tsx
+ create mode 100644 frontend-web/src/portals/portal-gek/components/GekSidebar.tsx
+ create mode 100644 frontend-web/src/portals/portal-gek/pages/GekDashboardPage.tsx
+ create mode 100644 frontend-web/src/portals/portal-methodist/App.tsx
+ create mode 100644 frontend-web/src/portals/portal-methodist/components/MethodistSidebar.tsx
+ create mode 100644 frontend-web/src/portals/portal-student/App.tsx
+ create mode 100644 frontend-web/src/portals/portal-student/components/StudentSidebar.tsx
+
+diff --git a/backend/src/main/java/com/spbutu/gia/auth/domain/entity/AppUser.java b/backend/src/main/java/com/spbutu/gia/auth/domain/entity/AppUser.java
+index 57d3e8f..264bc36 100644
+--- a/backend/src/main/java/com/spbutu/gia/auth/domain/entity/AppUser.java
++++ b/backend/src/main/java/com/spbutu/gia/auth/domain/entity/AppUser.java
+@@ -7,12 +7,16 @@ import org.springframework.data.annotation.LastModifiedDate;
+ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+ 
+ import java.time.LocalDateTime;
++import java.util.HashSet;
++import java.util.Set;
+ import java.util.UUID;
+ 
+ /**
+  * Пользователь системы.
+- * Единая учетная запись для всех ролей: админ, методист, секретарь,
+- * председатель ГЭК, член ГЭК, студент.
++ * Поддерживает множественные роли для доступа к разным порталам.
++ *
++ * Пример: один человек может быть METHODIST + GEK_MEMBER.
++ * Тогда у него доступ к portal-methodist и portal-gek.
+  */
+ @Entity
+ @Table(name = "app_user")
+@@ -35,9 +39,37 @@ public class AppUser {
+     @Column(name = "full_name", length = 200)
+     private String fullName;
+ 
++    /**
++     * Множественные роли пользователя.
++     * Хранятся в отдельной таблице user_roles (UserRole многие-ко-многим).
++     */
++    @ElementCollection(fetch = FetchType.EAGER)
++    @CollectionTable(
++        name = "user_roles",
++        joinColumns = @JoinColumn(name = "user_id")
++    )
+     @Enumerated(EnumType.STRING)
+-    @Column(nullable = false, length = 20)
+-    private UserRole role;
++    @Column(name = "role", nullable = false, length = 30)
++    private Set<UserRole> roles = new HashSet<>();
++
++    /**
++     * Привязка к кафедре (для ролей DEPARTMENT_HEAD, DEPARTMENT_SECRETARY, SUPERVISOR).
++     */
++    @Column(name = "department_id")
++    private UUID departmentId;
++
++    /**
++     * Привязка к учебной группе (для роли STUDENT).
++     */
++    @Column(name = "study_group_id")
++    private UUID studyGroupId;
++
++    /**
++     * Основной портал для редиректа после входа.
++     * Определяется автоматически по приоритету ролей.
++     */
++    @Column(name = "primary_portal", length = 30)
++    private String primaryPortal;
+ 
+     @CreatedDate
+     @Column(name = "created_at", nullable = false, updatable = false)
+@@ -47,9 +79,13 @@ public class AppUser {
+     @Column(name = "updated_at", nullable = false)
+     private LocalDateTime updatedAt;
+ 
++    // ========== Конструкторы ==========
++
+     public AppUser() {
+     }
+ 
++    // ========== Геттеры / Сеттеры ==========
++
+     public UUID getId() {
+         return id;
+     }
+@@ -90,12 +126,80 @@ public class AppUser {
+         this.fullName = fullName;
+     }
+ 
+-    public UserRole getRole() {
+-        return role;
++    public Set<UserRole> getRoles() {
++        return roles;
++    }
++
++    public void setRoles(Set<UserRole> roles) {
++        this.roles = roles;
++    }
++
++    /**
++     * Добавить роль к пользователю.
++     */
++    public void addRole(UserRole role) {
++        this.roles.add(role);
++    }
++
++    /**
++     * Удалить роль у пользователя.
++     */
++    public void removeRole(UserRole role) {
++        this.roles.remove(role);
++    }
++
++    /**
++     * Проверить, имеет ли пользователь указанную роль.
++     */
++    public boolean hasRole(UserRole role) {
++        return this.roles.contains(role);
++    }
++
++    /**
++     * Проверить, имеет ли пользователь хотя бы одну из указанных ролей.
++     */
++    public boolean hasAnyRole(UserRole... checkRoles) {
++        for (UserRole r : checkRoles) {
++            if (this.roles.contains(r)) {
++                return true;
++            }
++        }
++        return false;
++    }
++
++    /**
++     * Получить список доступных порталов.
++     */
++    public Set<String> getAvailablePortals() {
++        Set<String> portals = new HashSet<>();
++        for (UserRole role : roles) {
++            portals.add(role.getPortal());
++        }
++        return portals;
++    }
++
++    public UUID getDepartmentId() {
++        return departmentId;
++    }
++
++    public void setDepartmentId(UUID departmentId) {
++        this.departmentId = departmentId;
++    }
++
++    public UUID getStudyGroupId() {
++        return studyGroupId;
++    }
++
++    public void setStudyGroupId(UUID studyGroupId) {
++        this.studyGroupId = studyGroupId;
++    }
++
++    public String getPrimaryPortal() {
++        return primaryPortal;
+     }
+ 
+-    public void setRole(UserRole role) {
+-        this.role = role;
++    public void setPrimaryPortal(String primaryPortal) {
++        this.primaryPortal = primaryPortal;
+     }
+ 
+     public LocalDateTime getCreatedAt() {
+diff --git a/backend/src/main/java/com/spbutu/gia/auth/domain/enums/UserRole.java b/backend/src/main/java/com/spbutu/gia/auth/domain/enums/UserRole.java
+index dbdbfe7..b5368b8 100644
+--- a/backend/src/main/java/com/spbutu/gia/auth/domain/enums/UserRole.java
++++ b/backend/src/main/java/com/spbutu/gia/auth/domain/enums/UserRole.java
+@@ -3,13 +3,86 @@ package com.spbutu.gia.auth.domain.enums;
+ /**
+  * Роли пользователей в системе.
+  * Хранится в БД как строка (VARCHAR) для читаемости.
++ *
++ * Архитектура порталов:
++ * - SYSTEM_ADMIN, UNIVERSITY_ADMIN → portal-admin
++ * - DEAN, DEAN_SECRETARY → portal-deanery
++ * - DEPARTMENT_HEAD, DEPARTMENT_SECRETARY, SUPERVISOR → portal-department
++ * - GEK_SECRETARY, GEK_CHAIRMAN, GEK_MEMBER → portal-gek
++ * - METHODIST → portal-methodist
++ * - STUDENT → portal-student
+  */
+ public enum UserRole {
+-    ADMIN,        // Администратор системы
+-    METHODIST,    // Методист (ведет справочники)
+-    SECRETARY,    // Секретарь ГЭК (создает заседания, протоколы)
+-    CHAIRMAN,     // Председатель ГЭК
+-    GEK_MEMBER,   // Член ГЭК (голосует)
+-    STUDENT,      // Студент (просмотр результатов)
+-    DEAN          // Деканат (предпросмотр и утверждение документов)
++    // === СИСТЕМНЫЙ УРОВЕНЬ ===
++    SYSTEM_ADMIN,        // Пользователи, роли, аудит, резервное копирование
++    UNIVERSITY_ADMIN,    // Справочники, настройки ГИА, отчёты по вузу
++
++    // === ДЕКАНАТ ===
++    DEAN,                // Утверждение приказов, контингент
++    DEAN_SECRETARY,      // Оформление приказов, движение студентов
++
++    // === КАФЕДРА ===
++    DEPARTMENT_HEAD,     // Дисциплины, преподаватели, нагрузка
++    DEPARTMENT_SECRETARY,// Документооборот кафедры
++    SUPERVISOR,          // Руководители ВКР (преподаватели)
++
++    // === КОМИССИЯ ГИА (ГЭК) ===
++    GEK_SECRETARY,       // Создание заседаний, протоколы, ведомости
++    GEK_CHAIRMAN,        // Утверждение, контроль кворума
++    GEK_MEMBER,          // Голосование по PIN-коду
++
++    // === МЕТОДИСТЫ ===
++    METHODIST,           // Импорт студентов, допуски, расписание
++
++    // === СТУДЕНТЫ ===
++    STUDENT;             // Личный кабинет ГИА, статус, оценки
++
++    /**
++     * Возвращает код портала для роли.
++     */
++    public String getPortal() {
++        return switch (this) {
++            case SYSTEM_ADMIN, UNIVERSITY_ADMIN -> "admin";
++            case DEAN, DEAN_SECRETARY -> "deanery";
++            case DEPARTMENT_HEAD, DEPARTMENT_SECRETARY, SUPERVISOR -> "department";
++            case GEK_SECRETARY, GEK_CHAIRMAN, GEK_MEMBER -> "gek";
++            case METHODIST -> "methodist";
++            case STUDENT -> "student";
++        };
++    }
++
++    /**
++     * Роли, которые могут входить в несколько порталов (администраторы).
++     */
++    public boolean isMultiPortal() {
++        return this == SYSTEM_ADMIN || this == UNIVERSITY_ADMIN;
++    }
++
++    /**
++     * Роли, имеющие доступ к административному порталу.
++     */
++    public boolean isAdminPortal() {
++        return this == SYSTEM_ADMIN || this == UNIVERSITY_ADMIN;
++    }
++
++    /**
++     * Роли, имеющие доступ к порталу ГЭК.
++     */
++    public boolean isGekPortal() {
++        return this == GEK_SECRETARY || this == GEK_CHAIRMAN || this == GEK_MEMBER;
++    }
++
++    /**
++     * Роли деканата.
++     */
++    public boolean isDeaneryPortal() {
++        return this == DEAN || this == DEAN_SECRETARY;
++    }
++
++    /**
++     * Роли кафедры.
++     */
++    public boolean isDepartmentPortal() {
++        return this == DEPARTMENT_HEAD || this == DEPARTMENT_SECRETARY || this == SUPERVISOR;
++    }
+ }
+diff --git a/backend/src/main/java/com/spbutu/gia/auth/infrastructure/config/SecurityConfig.java b/backend/src/main/java/com/spbutu/gia/auth/infrastructure/config/SecurityConfig.java
+index c7c9c4a..11116d9 100644
+--- a/backend/src/main/java/com/spbutu/gia/auth/infrastructure/config/SecurityConfig.java
++++ b/backend/src/main/java/com/spbutu/gia/auth/infrastructure/config/SecurityConfig.java
+@@ -22,9 +22,21 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+ import java.util.List;
+ 
+ /**
+- * Конфигурация Spring Security.
+- * Stateless-сессии, JWT-аутентификация, CORS, BCrypt (12 раундов).
+- * Роли проверяются через @PreAuthorize на уровне контроллеров.
++ * Конфигурация Spring Security для модульной архитектуры с порталами.
++ *
++ * Структура URL:
++ * - /auth/** — публичные (логин, refresh)
++ * - /actuator/** — публичные (health)
++ * - /portal/admin/** — SYSTEM_ADMIN, UNIVERSITY_ADMIN
++ * - /portal/deanery/** — DEAN, DEAN_SECRETARY
++ * - /portal/department/** — DEPARTMENT_HEAD, DEPARTMENT_SECRETARY, SUPERVISOR
++ * - /portal/gek/** — GEK_SECRETARY, GEK_CHAIRMAN, GEK_MEMBER
++ * - /portal/methodist/** — METHODIST
++ * - /portal/student/** — STUDENT
++ * - /api/** — общие API (требуют аутентификации)
++ *
++ * Переходная фаза: старые пути (/meetings, /protocols и т.д.) пока работают
++ * с текущими ролями, но будут перенесены на /portal/gek/**.
+  */
+ @Configuration
+ @EnableWebSecurity
+@@ -37,67 +49,92 @@ public class SecurityConfig {
+         this.jwtFilter = jwtFilter;
+     }
+ 
+-    /**
+-     * Цепочка фильтров безопасности.
+-     */
+     @Bean
+     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+         http
+-                .csrf(AbstractHttpConfigurer::disable)
+-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+-                .sessionManagement(session ->
+-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+-                .authorizeHttpRequests(auth -> auth
+-                        // CORS preflight
+-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+-                        // Публичные эндпоинты (без аутентификации)
+-                        .requestMatchers("/auth/login").permitAll()
+-                        .requestMatchers("/auth/refresh").permitAll()
+-                        .requestMatchers("/actuator/health").permitAll()
+-                        // Testing endpoints — временно доступны без авторизации для тестирования
+-                        .requestMatchers("/testing/**").permitAll()
+-                        // Protocols endpoints — временно доступны без авторизации
+-                        .requestMatchers("/protocols/**").permitAll()
+-                        // Черновики документов — только деканат и секретарь
+-                        .requestMatchers("/drafts/**").hasAnyRole("SECRETARY", "DEAN")
+-                        // Все остальные запросы требуют аутентификации
+-                        .anyRequest().authenticated()
+-                )
+-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
++            .csrf(AbstractHttpConfigurer::disable)
++            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
++            .sessionManagement(session ->
++                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
++            .authorizeHttpRequests(auth -> auth
++                // === ПУБЛИЧНЫЕ ===
++                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
++                .requestMatchers("/auth/**").permitAll()
++                .requestMatchers("/actuator/health").permitAll()
++
++                // === ПОРТАЛ: АДМИНИСТРАЦИЯ ===
++                .requestMatchers("/portal/admin/**")
++                    .hasAnyRole("SYSTEM_ADMIN", "UNIVERSITY_ADMIN")
++
++                // === ПОРТАЛ: ДЕКАНАТ ===
++                .requestMatchers("/portal/deanery/**")
++                    .hasAnyRole("DEAN", "DEAN_SECRETARY", "SYSTEM_ADMIN", "UNIVERSITY_ADMIN")
++                .requestMatchers("/portal/deanery/orders/approve", "/portal/deanery/orders/sign")
++                    .hasAnyRole("DEAN", "SYSTEM_ADMIN")
++
++                // === ПОРТАЛ: КАФЕДРА ===
++                .requestMatchers("/portal/department/**")
++                    .hasAnyRole("DEPARTMENT_HEAD", "DEPARTMENT_SECRETARY",
++                        "SUPERVISOR", "SYSTEM_ADMIN", "UNIVERSITY_ADMIN")
++
++                // === ПОРТАЛ: ГЭК ===
++                .requestMatchers("/portal/gek/meetings/**")
++                    .hasAnyRole("GEK_SECRETARY", "GEK_CHAIRMAN", "SYSTEM_ADMIN", "UNIVERSITY_ADMIN")
++                .requestMatchers("/portal/gek/voting/**")
++                    .hasAnyRole("GEK_MEMBER", "GEK_SECRETARY", "GEK_CHAIRMAN")
++                .requestMatchers("/portal/gek/protocols/**")
++                    .hasAnyRole("GEK_SECRETARY", "GEK_CHAIRMAN", "SYSTEM_ADMIN", "UNIVERSITY_ADMIN")
++                .requestMatchers("/portal/gek/vedomost/**")
++                    .hasAnyRole("GEK_SECRETARY", "SYSTEM_ADMIN", "UNIVERSITY_ADMIN")
++                .requestMatchers("/portal/gek/monitor/**")
++                    .hasAnyRole("GEK_SECRETARY", "GEK_CHAIRMAN", "SYSTEM_ADMIN", "UNIVERSITY_ADMIN")
++
++                // === ПОРТАЛ: МЕТОДИСТ ===
++                .requestMatchers("/portal/methodist/**")
++                    .hasAnyRole("METHODIST", "SYSTEM_ADMIN", "UNIVERSITY_ADMIN")
++
++                // === ПОРТАЛ: СТУДЕНТ ===
++                .requestMatchers("/portal/student/**")
++                    .hasAnyRole("STUDENT", "SYSTEM_ADMIN", "UNIVERSITY_ADMIN")
++
++                // === СТАРЫЕ ПУТИ (переходная совместимость) ===
++                .requestMatchers("/protocols/**")
++                    .hasAnyRole("SECRETARY", "CHAIRMAN", "ADMIN")
++                .requestMatchers("/testing/**").hasRole("ADMIN")
++                .requestMatchers("/drafts/**").hasAnyRole("SECRETARY", "DEAN")
++
++                // === ВСЁ ОСТАЛЬНОЕ ===
++                .anyRequest().authenticated()
++            )
++            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+ 
+         return http.build();
+     }
+ 
+-    /**
+-     * Менеджер аутентификации.
+-     */
+     @Bean
+     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+         return config.getAuthenticationManager();
+     }
+ 
+-    /**
+-     * Кодировщик паролей BCrypt с 12 раундами.
+-     */
+     @Bean
+     public PasswordEncoder passwordEncoder() {
+         return new BCryptPasswordEncoder(12);
+     }
+ 
+-    /**
+-     * Настройка CORS для взаимодействия с React-фронтендом.
+-     */
+     @Bean
+     public CorsConfigurationSource corsConfigurationSource() {
+         CorsConfiguration configuration = new CorsConfiguration();
+         configuration.setAllowedOrigins(List.of(
+-                "http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:5176", "http://localhost:5177",
+-                "http://localhost:3000", "http://localhost:8081", "http://localhost:8082",
+-                "http://172.27.48.1:3000", "http://172.27.48.1:5173", "http://172.27.48.1:5174",
+-                "http://172.27.48.1:5175", "http://172.27.48.1:5176", "http://172.27.48.1:5177", "http://172.27.48.1:8081", "http://172.27.48.1:8082"
++            "http://localhost:5173", "http://localhost:5174", "http://localhost:5175",
++            "http://localhost:3000", "http://localhost:8081", "http://localhost:8082",
++            "http://172.27.48.1:3000", "http://172.27.48.1:5173",
++            // Порталы (будущие)
++            "http://localhost:5178", "http://localhost:5179",
++            "http://localhost:5180", "http://localhost:5181",
++            "http://localhost:5182", "http://localhost:5183"
+         ));
+         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
++        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Portal"));
+         configuration.setExposedHeaders(List.of("Content-Disposition"));
+         configuration.setAllowCredentials(true);
+ 
+diff --git a/backend/src/main/java/com/spbutu/gia/auth/infrastructure/security/CustomUserDetails.java b/backend/src/main/java/com/spbutu/gia/auth/infrastructure/security/CustomUserDetails.java
+new file mode 100644
+index 0000000..f05c22e
+--- /dev/null
++++ b/backend/src/main/java/com/spbutu/gia/auth/infrastructure/security/CustomUserDetails.java
+@@ -0,0 +1,120 @@
++package com.spbutu.gia.auth.infrastructure.security;
++
++import com.spbutu.gia.auth.domain.entity.AppUser;
++import com.spbutu.gia.auth.domain.enums.UserRole;
++import org.springframework.security.core.GrantedAuthority;
++import org.springframework.security.core.authority.SimpleGrantedAuthority;
++import org.springframework.security.core.userdetails.UserDetails;
++
++import java.util.Collection;
++import java.util.Set;
++import java.util.stream.Collectors;
++
++/**
++ * Реализация UserDetails для Spring Security.
++ * Преобразует Set<UserRole> в коллекцию GrantedAuthority.
++ *
++ * Каждая роль мапится в authority вида "ROLE_<ROLE_NAME>"
++ * (требование Spring Security).
++ */
++public class CustomUserDetails implements UserDetails {
++
++    private final AppUser appUser;
++
++    public CustomUserDetails(AppUser appUser) {
++        this.appUser = appUser;
++    }
++
++    @Override
++    public Collection<? extends GrantedAuthority> getAuthorities() {
++        return appUser.getRoles().stream()
++                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.name()))
++                .collect(Collectors.toList());
++    }
++
++    @Override
++    public String getPassword() {
++        return appUser.getPassword();
++    }
++
++    @Override
++    public String getUsername() {
++        return appUser.getUsername();
++    }
++
++    @Override
++    public boolean isAccountNonExpired() {
++        return true;
++    }
++
++    @Override
++    public boolean isAccountNonLocked() {
++        return true;
++    }
++
++    @Override
++    public boolean isCredentialsNonExpired() {
++        return true;
++    }
++
++    @Override
++    public boolean isEnabled() {
++        return true;
++    }
++
++    /**
++     * Получить ID пользователя.
++     */
++    public java.util.UUID getId() {
++        return appUser.getId();
++    }
++
++    /**
++     * Получить полное имя.
++     */
++    public String getFullName() {
++        return appUser.getFullName();
++    }
++
++    /**
++     * Получить email.
++     */
++    public String getEmail() {
++        return appUser.getEmail();
++    }
++
++    /**
++     * Получить роли пользователя.
++     */
++    public Set<UserRole> getRoles() {
++        return appUser.getRoles();
++    }
++
++    /**
++     * Проверить наличие роли.
++     */
++    public boolean hasRole(UserRole role) {
++        return appUser.hasRole(role);
++    }
++
++    /**
++     * Получить привязку к кафедре.
++     */
++    public java.util.UUID getDepartmentId() {
++        return appUser.getDepartmentId();
++    }
++
++    /**
++     * Получить привязку к группе.
++     */
++    public java.util.UUID getStudyGroupId() {
++        return appUser.getStudyGroupId();
++    }
++
++    /**
++     * Получить основной портал.
++     */
++    public String getPrimaryPortal() {
++        return appUser.getPrimaryPortal();
++    }
++}
+diff --git a/backend/src/main/java/com/spbutu/gia/auth/web/AuthController.java b/backend/src/main/java/com/spbutu/gia/auth/web/AuthController.java
+index 60acca3..b1abb46 100644
+--- a/backend/src/main/java/com/spbutu/gia/auth/web/AuthController.java
++++ b/backend/src/main/java/com/spbutu/gia/auth/web/AuthController.java
+@@ -1,48 +1,139 @@
+ package com.spbutu.gia.auth.web;
+ 
+-import com.spbutu.gia.auth.application.AuthService;
++import com.spbutu.gia.auth.domain.entity.AppUser;
++import com.spbutu.gia.auth.domain.enums.UserRole;
++import com.spbutu.gia.auth.domain.repository.AppUserRepository;
++import com.spbutu.gia.auth.infrastructure.security.CustomUserDetails;
++import com.spbutu.gia.auth.infrastructure.security.JwtUtil;
+ import com.spbutu.gia.auth.web.dto.LoginRequest;
+ import com.spbutu.gia.auth.web.dto.RefreshRequest;
+ import com.spbutu.gia.auth.web.dto.TokenResponse;
+-import jakarta.validation.Valid;
++import org.springframework.http.HttpStatus;
+ import org.springframework.http.ResponseEntity;
++import org.springframework.security.authentication.AuthenticationManager;
++import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
++import org.springframework.security.core.Authentication;
++import org.springframework.security.core.context.SecurityContextHolder;
++import org.springframework.security.core.userdetails.UserDetails;
++import org.springframework.security.crypto.password.PasswordEncoder;
+ import org.springframework.web.bind.annotation.*;
++import org.springframework.web.server.ResponseStatusException;
++
++import java.util.*;
+ 
+ /**
+- * REST-контроллер аутентификации.
+- * Публичные эндпоинты (не требуют JWT).
++ * Контроллер аутентификации.
++ * Возвращает токены + роли + доступные порталы.
+  */
+ @RestController
+ @RequestMapping("/auth")
+ public class AuthController {
+ 
+-    private final AuthService authService;
++    private final AuthenticationManager authenticationManager;
++    private final JwtUtil jwtUtil;
++    private final AppUserRepository userRepository;
++    private final PasswordEncoder passwordEncoder;
+ 
+-    public AuthController(AuthService authService) {
+-        this.authService = authService;
++    public AuthController(AuthenticationManager authenticationManager,
++                          JwtUtil jwtUtil,
++                          AppUserRepository userRepository,
++                          PasswordEncoder passwordEncoder) {
++        this.authenticationManager = authenticationManager;
++        this.jwtUtil = jwtUtil;
++        this.userRepository = userRepository;
++        this.passwordEncoder = passwordEncoder;
+     }
+ 
+-    /**
+-     * Вход в систему.
+-     * POST /api/auth/login
+-     *
+-     * @param request логин и пароль
+-     * @return пара access/refresh токенов
+-     */
+     @PostMapping("/login")
+-    public ResponseEntity<TokenResponse> login(@RequestBody @Valid LoginRequest request) {
+-        return ResponseEntity.ok(authService.login(request));
++    public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequest request) {
++        Authentication authentication = authenticationManager.authenticate(
++            new UsernamePasswordAuthenticationToken(request.username(), request.password())
++        );
++        SecurityContextHolder.getContext().setAuthentication(authentication);
++
++        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
++        String accessToken = jwtUtil.generateAccessToken(userDetails);
++        String refreshToken = jwtUtil.generateRefreshToken(userDetails);
++
++        AppUser user = userRepository.findByUsername(request.username())
++            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
++
++        // Формируем ответ с ролями и порталами
++        Map<String, Object> response = new HashMap<>();
++        response.put("accessToken", accessToken);
++        response.put("refreshToken", refreshToken);
++        response.put("user", Map.of(
++            "id", user.getId(),
++            "username", user.getUsername(),
++            "fullName", user.getFullName(),
++            "email", user.getEmail()
++        ));
++        response.put("roles", user.getRoles().stream().map(UserRole::name).toList());
++        response.put("availablePortals", user.getAvailablePortals());
++        response.put("primaryPortal", user.getPrimaryPortal() != null
++            ? user.getPrimaryPortal()
++            : determinePrimaryPortal(user.getRoles()));
++
++        return ResponseEntity.ok(response);
++    }
++
++    @PostMapping("/refresh")
++    public ResponseEntity<Map<String, String>> refresh(@RequestBody RefreshRequest request) {
++        String username = jwtUtil.extractUsername(request.refreshToken());
++        AppUser user = userRepository.findByUsername(username)
++            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
++
++        if (!jwtUtil.isTokenValid(request.refreshToken(), username)) {
++            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
++        }
++
++        CustomUserDetails userDetails = new CustomUserDetails(user);
++        String newAccessToken = jwtUtil.generateAccessToken(userDetails);
++        String newRefreshToken = jwtUtil.generateRefreshToken(userDetails);
++
++        return ResponseEntity.ok(Map.of(
++            "accessToken", newAccessToken,
++            "refreshToken", newRefreshToken
++        ));
++    }
++
++    @GetMapping("/me")
++    public ResponseEntity<Map<String, Object>> getCurrentUser() {
++        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
++        if (auth == null || !auth.isAuthenticated()) {
++            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
++        }
++
++        String username = auth.getName();
++        AppUser user = userRepository.findByUsername(username)
++            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
++
++        return ResponseEntity.ok(Map.of(
++            "id", user.getId(),
++            "username", user.getUsername(),
++            "fullName", user.getFullName(),
++            "email", user.getEmail(),
++            "roles", user.getRoles().stream().map(UserRole::name).toList(),
++            "availablePortals", user.getAvailablePortals(),
++            "primaryPortal", user.getPrimaryPortal() != null
++                ? user.getPrimaryPortal()
++                : determinePrimaryPortal(user.getRoles()),
++            "departmentId", user.getDepartmentId(),
++            "studyGroupId", user.getStudyGroupId()
++        ));
+     }
+ 
+     /**
+-     * Обновление access-токена по refresh-токену.
+-     * POST /api/auth/refresh
+-     *
+-     * @param request refresh-токен (в теле запроса)
+-     * @return новая пара токенов
++     * Определить основной портал по приоритету ролей.
+      */
+-    @PostMapping("/refresh")
+-    public ResponseEntity<TokenResponse> refresh(@RequestBody @Valid RefreshRequest request) {
+-        return ResponseEntity.ok(authService.refresh(request.refreshToken()));
++    private String determinePrimaryPortal(Set<UserRole> roles) {
++        // Приоритет: админ > деканат > ГЭК > кафедра > методист > студент
++        if (roles.stream().anyMatch(UserRole::isAdminPortal)) return "admin";
++        if (roles.stream().anyMatch(UserRole::isDeaneryPortal)) return "deanery";
++        if (roles.stream().anyMatch(UserRole::isGekPortal)) return "gek";
++        if (roles.stream().anyMatch(UserRole::isDepartmentPortal)) return "department";
++        if (roles.contains(UserRole.METHODIST)) return "methodist";
++        if (roles.contains(UserRole.STUDENT)) return "student";
++        return "student";
+     }
+ }
+diff --git a/backend/src/main/java/com/spbutu/gia/portal/admin/web/PortalAdminController.java b/backend/src/main/java/com/spbutu/gia/portal/admin/web/PortalAdminController.java
+new file mode 100644
+index 0000000..66990f1
+--- /dev/null
++++ b/backend/src/main/java/com/spbutu/gia/portal/admin/web/PortalAdminController.java
+@@ -0,0 +1,67 @@
++package com.spbutu.gia.portal.admin.web;
++
++import com.spbutu.gia.auth.domain.entity.AppUser;
++import com.spbutu.gia.auth.domain.repository.AppUserRepository;
++import com.spbutu.gia.auth.web.dto.UserDto;
++import org.springframework.http.HttpStatus;
++import org.springframework.http.ResponseEntity;
++import org.springframework.security.access.prepost.PreAuthorize;
++import org.springframework.web.bind.annotation.*;
++import org.springframework.web.server.ResponseStatusException;
++
++import java.util.List;
++import java.util.UUID;
++
++/**
++ * Портал: Администрация — Управление пользователями и аудит.
++ * URL: /portal/admin/**
++ */
++@RestController
++@RequestMapping("/portal/admin")
++public class PortalAdminController {
++
++    private final AppUserRepository userRepository;
++
++    public PortalAdminController(AppUserRepository userRepository) {
++        this.userRepository = userRepository;
++    }
++
++    @GetMapping("/users")
++    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'UNIVERSITY_ADMIN')")
++    public ResponseEntity<List<UserDto>> getAllUsers() {
++        return ResponseEntity.ok(
++            userRepository.findAll().stream()
++                .map(this::toDto)
++                .toList()
++        );
++    }
++
++    @GetMapping("/users/{id}")
++    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'UNIVERSITY_ADMIN')")
++    public ResponseEntity<UserDto> getUser(@PathVariable UUID id) {
++        return ResponseEntity.ok(
++            userRepository.findById(id)
++                .map(this::toDto)
++                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND))
++        );
++    }
++
++    @DeleteMapping("/users/{id}")
++    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
++    public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
++        userRepository.deleteById(id);
++        return ResponseEntity.noContent().build();
++    }
++
++    private UserDto toDto(AppUser u) {
++        return new UserDto(
++            u.getId(),
++            u.getUsername(),
++            u.getFullName(),
++            u.getEmail(),
++            u.getRoles().iterator().next(), // ВРЕМЕННО — пока UserDto поддерживает одну роль
++            u.getCreatedAt(),
++            u.getUpdatedAt()
++        );
++    }
++}
+diff --git a/backend/src/main/java/com/spbutu/gia/portal/deanery/web/PortalDeaneryController.java b/backend/src/main/java/com/spbutu/gia/portal/deanery/web/PortalDeaneryController.java
+new file mode 100644
+index 0000000..3b5f34c
+--- /dev/null
++++ b/backend/src/main/java/com/spbutu/gia/portal/deanery/web/PortalDeaneryController.java
+@@ -0,0 +1,55 @@
++package com.spbutu.gia.portal.deanery.web;
++
++import com.spbutu.gia.core.application.dto.deanery.DeaneryOrderDto;
++import com.spbutu.gia.core.application.service.deanery.DeaneryService;
++import org.springframework.http.ResponseEntity;
++import org.springframework.security.access.prepost.PreAuthorize;
++import org.springframework.web.bind.annotation.*;
++
++import java.util.List;
++import java.util.UUID;
++
++/**
++ * Портал: Деканат — Приказы и движение контингента.
++ * URL: /portal/deanery/**
++ */
++@RestController
++@RequestMapping("/portal/deanery")
++public class PortalDeaneryController {
++
++    private final DeaneryService deaneryService;
++
++    public PortalDeaneryController(DeaneryService deaneryService) {
++        this.deaneryService = deaneryService;
++    }
++
++    // ========== ORDERS ==========
++
++    @GetMapping("/orders")
++    @PreAuthorize("hasAnyRole('DEAN', 'DEAN_SECRETARY', 'SYSTEM_ADMIN')")
++    public ResponseEntity<List<DeaneryOrderDto>> getAllOrders() {
++        return ResponseEntity.ok(deaneryService.getAllOrders());
++    }
++
++    @PostMapping("/orders/{id}/approve")
++    @PreAuthorize("hasAnyRole('DEAN', 'SYSTEM_ADMIN')")
++    public ResponseEntity<Void> approveOrder(@PathVariable UUID id) {
++        deaneryService.approveOrder(id);
++        return ResponseEntity.ok().build();
++    }
++
++    @PostMapping("/orders/{id}/sign")
++    @PreAuthorize("hasAnyRole('DEAN', 'SYSTEM_ADMIN')")
++    public ResponseEntity<Void> signOrder(@PathVariable UUID id) {
++        deaneryService.signOrder(id);
++        return ResponseEntity.ok().build();
++    }
++
++    // ========== MOVEMENTS ==========
++
++    @GetMapping("/movements")
++    @PreAuthorize("hasAnyRole('DEAN', 'DEAN_SECRETARY', 'SYSTEM_ADMIN')")
++    public ResponseEntity<List<?>> getAllMovements() {
++        return ResponseEntity.ok(deaneryService.getAllMovements());
++    }
++}
+diff --git a/backend/src/main/java/com/spbutu/gia/portal/department/web/PortalDepartmentController.java b/backend/src/main/java/com/spbutu/gia/portal/department/web/PortalDepartmentController.java
+new file mode 100644
+index 0000000..12e8819
+--- /dev/null
++++ b/backend/src/main/java/com/spbutu/gia/portal/department/web/PortalDepartmentController.java
+@@ -0,0 +1,51 @@
++package com.spbutu.gia.portal.department.web;
++
++import com.spbutu.gia.core.application.dto.DisciplineDto;
++import com.spbutu.gia.core.application.dto.TeacherDto;
++import com.spbutu.gia.core.application.service.DisciplineService;
++import com.spbutu.gia.core.application.service.TeacherService;
++import org.springframework.http.ResponseEntity;
++import org.springframework.security.access.prepost.PreAuthorize;
++import org.springframework.web.bind.annotation.*;
++
++import java.util.List;
++import java.util.UUID;
++
++/**
++ * Портал: Кафедра — Дисциплины и преподаватели.
++ * URL: /portal/department/**
++ */
++@RestController
++@RequestMapping("/portal/department")
++public class PortalDepartmentController {
++
++    private final DisciplineService disciplineService;
++    private final TeacherService teacherService;
++
++    public PortalDepartmentController(DisciplineService disciplineService, TeacherService teacherService) {
++        this.disciplineService = disciplineService;
++        this.teacherService = teacherService;
++    }
++
++    // ========== DISCIPLINES ==========
++
++    @GetMapping("/disciplines")
++    @PreAuthorize("hasAnyRole('DEPARTMENT_HEAD', 'DEPARTMENT_SECRETARY', 'SUPERVISOR', 'SYSTEM_ADMIN')")
++    public ResponseEntity<List<DisciplineDto>> getDisciplines() {
++        return ResponseEntity.ok(disciplineService.findAll());
++    }
++
++    // ========== TEACHERS ==========
++
++    @GetMapping("/teachers")
++    @PreAuthorize("hasAnyRole('DEPARTMENT_HEAD', 'DEPARTMENT_SECRETARY', 'SYSTEM_ADMIN')")
++    public ResponseEntity<List<TeacherDto>> getTeachers() {
++        return ResponseEntity.ok(teacherService.findAll());
++    }
++
++    @GetMapping("/teachers/{id}")
++    @PreAuthorize("hasAnyRole('DEPARTMENT_HEAD', 'DEPARTMENT_SECRETARY', 'SUPERVISOR', 'SYSTEM_ADMIN')")
++    public ResponseEntity<TeacherDto> getTeacher(@PathVariable UUID id) {
++        return ResponseEntity.ok(teacherService.findById(id));
++    }
++}
+diff --git a/backend/src/main/java/com/spbutu/gia/portal/gek/web/PortalGekMeetingController.java b/backend/src/main/java/com/spbutu/gia/portal/gek/web/PortalGekMeetingController.java
+new file mode 100644
+index 0000000..d1eeb84
+--- /dev/null
++++ b/backend/src/main/java/com/spbutu/gia/portal/gek/web/PortalGekMeetingController.java
+@@ -0,0 +1,56 @@
++package com.spbutu.gia.portal.gek.web;
++
++import com.spbutu.gia.core.application.dto.MeetingDto;
++import com.spbutu.gia.core.application.service.MeetingService;
++import org.springframework.http.ResponseEntity;
++import org.springframework.security.access.prepost.PreAuthorize;
++import org.springframework.web.bind.annotation.*;
++
++import java.util.List;
++import java.util.UUID;
++
++/**
++ * Портал: Комиссия ГИА (ГЭК) — Заседания.
++ * URL: /portal/gek/meetings/**
++ */
++@RestController
++@RequestMapping("/portal/gek/meetings")
++public class PortalGekMeetingController {
++
++    private final MeetingService meetingService;
++
++    public PortalGekMeetingController(MeetingService meetingService) {
++        this.meetingService = meetingService;
++    }
++
++    @GetMapping
++    @PreAuthorize("hasAnyRole('GEK_SECRETARY', 'GEK_CHAIRMAN', 'SYSTEM_ADMIN')")
++    public ResponseEntity<List<MeetingDto>> getAll() {
++        return ResponseEntity.ok(meetingService.findAll());
++    }
++
++    @GetMapping("/{id}")
++    @PreAuthorize("hasAnyRole('GEK_SECRETARY', 'GEK_CHAIRMAN', 'GEK_MEMBER', 'SYSTEM_ADMIN')")
++    public ResponseEntity<MeetingDto> getById(@PathVariable UUID id) {
++        return ResponseEntity.ok(meetingService.findById(id));
++    }
++
++    @PostMapping
++    @PreAuthorize("hasAnyRole('GEK_SECRETARY', 'SYSTEM_ADMIN')")
++    public ResponseEntity<MeetingDto> create(@RequestBody MeetingDto dto) {
++        return ResponseEntity.ok(meetingService.create(dto));
++    }
++
++    @PutMapping("/{id}")
++    @PreAuthorize("hasAnyRole('GEK_SECRETARY', 'SYSTEM_ADMIN')")
++    public ResponseEntity<MeetingDto> update(@PathVariable UUID id, @RequestBody MeetingDto dto) {
++        return ResponseEntity.ok(meetingService.update(id, dto));
++    }
++
++    @DeleteMapping("/{id}")
++    @PreAuthorize("hasAnyRole('GEK_SECRETARY', 'SYSTEM_ADMIN')")
++    public ResponseEntity<Void> delete(@PathVariable UUID id) {
++        meetingService.delete(id);
++        return ResponseEntity.noContent().build();
++    }
++}
+diff --git a/backend/src/main/java/com/spbutu/gia/portal/gek/web/PortalGekProtocolController.java b/backend/src/main/java/com/spbutu/gia/portal/gek/web/PortalGekProtocolController.java
+new file mode 100644
+index 0000000..a43c51f
+--- /dev/null
++++ b/backend/src/main/java/com/spbutu/gia/portal/gek/web/PortalGekProtocolController.java
+@@ -0,0 +1,56 @@
++package com.spbutu.gia.portal.gek.web;
++
++import com.spbutu.gia.core.application.dto.ProtocolDto;
++import com.spbutu.gia.core.application.service.ProtocolService;
++import org.springframework.http.ResponseEntity;
++import org.springframework.security.access.prepost.PreAuthorize;
++import org.springframework.web.bind.annotation.*;
++
++import java.util.List;
++import java.util.UUID;
++
++/**
++ * Портал: Комиссия ГИА (ГЭК) — Протоколы.
++ * URL: /portal/gek/protocols/**
++ */
++@RestController
++@RequestMapping("/portal/gek/protocols")
++public class PortalGekProtocolController {
++
++    private final ProtocolService protocolService;
++
++    public PortalGekProtocolController(ProtocolService protocolService) {
++        this.protocolService = protocolService;
++    }
++
++    @GetMapping
++    @PreAuthorize("hasAnyRole('GEK_SECRETARY', 'GEK_CHAIRMAN', 'SYSTEM_ADMIN')")
++    public ResponseEntity<List<ProtocolDto>> getAll() {
++        return ResponseEntity.ok(protocolService.findAll());
++    }
++
++    @GetMapping("/{id}")
++    @PreAuthorize("hasAnyRole('GEK_SECRETARY', 'GEK_CHAIRMAN', 'GEK_MEMBER', 'SYSTEM_ADMIN')")
++    public ResponseEntity<ProtocolDto> getById(@PathVariable UUID id) {
++        return ResponseEntity.ok(protocolService.findById(id));
++    }
++
++    @PostMapping
++    @PreAuthorize("hasAnyRole('GEK_SECRETARY', 'SYSTEM_ADMIN')")
++    public ResponseEntity<ProtocolDto> create(@RequestBody ProtocolDto dto) {
++        return ResponseEntity.ok(protocolService.create(dto));
++    }
++
++    @PostMapping("/{id}/approve")
++    @PreAuthorize("hasAnyRole('GEK_CHAIRMAN', 'SYSTEM_ADMIN')")
++    public ResponseEntity<Void> approve(@PathVariable UUID id) {
++        protocolService.approve(id);
++        return ResponseEntity.ok().build();
++    }
++
++    @PostMapping("/{id}/generate-docx")
++    @PreAuthorize("hasAnyRole('GEK_SECRETARY', 'SYSTEM_ADMIN')")
++    public ResponseEntity<byte[]> generateDocx(@PathVariable UUID id) {
++        return ResponseEntity.ok(protocolService.generateDocx(id));
++    }
++}
+diff --git a/backend/src/main/java/com/spbutu/gia/portal/gek/web/PortalGekVotingController.java b/backend/src/main/java/com/spbutu/gia/portal/gek/web/PortalGekVotingController.java
+new file mode 100644
+index 0000000..3fc8996
+--- /dev/null
++++ b/backend/src/main/java/com/spbutu/gia/portal/gek/web/PortalGekVotingController.java
+@@ -0,0 +1,44 @@
++package com.spbutu.gia.portal.gek.web;
++
++import com.spbutu.gia.core.application.dto.VoteDto;
++import com.spbutu.gia.core.application.service.VotingService;
++import org.springframework.http.ResponseEntity;
++import org.springframework.security.access.prepost.PreAuthorize;
++import org.springframework.web.bind.annotation.*;
++
++import java.util.List;
++import java.util.UUID;
++
++/**
++ * Портал: Комиссия ГИА (ГЭК) — Голосование.
++ * URL: /portal/gek/voting/**
++ */
++@RestController
++@RequestMapping("/portal/gek/voting")
++public class PortalGekVotingController {
++
++    private final VotingService votingService;
++
++    public PortalGekVotingController(VotingService votingService) {
++        this.votingService = votingService;
++    }
++
++    @GetMapping("/meeting/{meetingId}")
++    @PreAuthorize("hasAnyRole('GEK_MEMBER', 'GEK_SECRETARY', 'GEK_CHAIRMAN')")
++    public ResponseEntity<List<VoteDto>> getByMeeting(@PathVariable UUID meetingId) {
++        return ResponseEntity.ok(votingService.findByMeeting(meetingId));
++    }
++
++    @PostMapping
++    @PreAuthorize("hasAnyRole('GEK_MEMBER')")
++    public ResponseEntity<VoteDto> castVote(@RequestBody VoteDto dto) {
++        return ResponseEntity.ok(votingService.castVote(dto));
++    }
++
++    @PostMapping("/{id}/cancel")
++    @PreAuthorize("hasAnyRole('GEK_MEMBER')")
++    public ResponseEntity<Void> cancelVote(@PathVariable UUID id) {
++        votingService.cancelVote(id);
++        return ResponseEntity.ok().build();
++    }
++}
+diff --git a/backend/src/main/java/com/spbutu/gia/portal/methodist/web/PortalMethodistController.java b/backend/src/main/java/com/spbutu/gia/portal/methodist/web/PortalMethodistController.java
+new file mode 100644
+index 0000000..666c094
+--- /dev/null
++++ b/backend/src/main/java/com/spbutu/gia/portal/methodist/web/PortalMethodistController.java
+@@ -0,0 +1,53 @@
++package com.spbutu.gia.portal.methodist.web;
++
++import com.spbutu.gia.core.application.dto.AdmissionDto;
++import com.spbutu.gia.core.application.dto.StatementDto;
++import com.spbutu.gia.core.application.service.AdmissionService;
++import com.spbutu.gia.core.application.service.StatementService;
++import org.springframework.http.ResponseEntity;
++import org.springframework.security.access.prepost.PreAuthorize;
++import org.springframework.web.bind.annotation.*;
++import org.springframework.web.multipart.MultipartFile;
++
++import java.util.List;
++import java.util.UUID;
++
++/**
++ * Портал: Методист — Допуски и ведомости.
++ * URL: /portal/methodist/**
++ */
++@RestController
++@RequestMapping("/portal/methodist")
++public class PortalMethodistController {
++
++    private final AdmissionService admissionService;
++    private final StatementService statementService;
++
++    public PortalMethodistController(AdmissionService admissionService, StatementService statementService) {
++        this.admissionService = admissionService;
++        this.statementService = statementService;
++    }
++
++    // ========== ADMISSIONS ==========
++
++    @GetMapping("/admissions")
++    @PreAuthorize("hasAnyRole('METHODIST', 'SYSTEM_ADMIN', 'UNIVERSITY_ADMIN')")
++    public ResponseEntity<List<AdmissionDto>> getAllAdmissions() {
++        return ResponseEntity.ok(admissionService.findAll());
++    }
++
++    @PostMapping("/admissions/import")
++    @PreAuthorize("hasAnyRole('METHODIST', 'SYSTEM_ADMIN')")
++    public ResponseEntity<Void> importStudents(@RequestParam("file") MultipartFile file) {
++        admissionService.importFromExcel(file);
++        return ResponseEntity.ok().build();
++    }
++
++    // ========== STATEMENTS ==========
++
++    @GetMapping("/statements")
++    @PreAuthorize("hasAnyRole('METHODIST', 'SYSTEM_ADMIN', 'UNIVERSITY_ADMIN')")
++    public ResponseEntity<List<StatementDto>> getAllStatements() {
++        return ResponseEntity.ok(statementService.findAll());
++    }
++}
+diff --git a/backend/src/main/java/com/spbutu/gia/portal/student/web/PortalStudentController.java b/backend/src/main/java/com/spbutu/gia/portal/student/web/PortalStudentController.java
+new file mode 100644
+index 0000000..005c7f3
+--- /dev/null
++++ b/backend/src/main/java/com/spbutu/gia/portal/student/web/PortalStudentController.java
+@@ -0,0 +1,68 @@
++package com.spbutu.gia.portal.student.web;
++
++import com.spbutu.gia.core.application.dto.*;
++import com.spbutu.gia.core.application.service.StudentProfileService;
++import org.springframework.http.ResponseEntity;
++import org.springframework.security.access.prepost.PreAuthorize;
++import org.springframework.security.core.Authentication;
++import org.springframework.security.core.context.SecurityContextHolder;
++import org.springframework.web.bind.annotation.*;
++import org.springframework.web.multipart.MultipartFile;
++
++import java.util.List;
++import java.util.UUID;
++
++/**
++ * Портал: Студент — Личный кабинет ГИА.
++ * URL: /portal/student/**
++ * Каждый студент видит только СВОИ данные.
++ */
++@RestController
++@RequestMapping("/portal/student")
++@PreAuthorize("hasAnyRole('STUDENT', 'SYSTEM_ADMIN')")
++public class PortalStudentController {
++
++    private final StudentProfileService studentProfileService;
++
++    public PortalStudentController(StudentProfileService studentProfileService) {
++        this.studentProfileService = studentProfileService;
++    }
++
++    @GetMapping("/profile")
++    public ResponseEntity<StudentProfileDto> getProfile() {
++        return ResponseEntity.ok(studentProfileService.getProfile(getCurrentUserId()));
++    }
++
++    @GetMapping("/grades")
++    public ResponseEntity<List<StudentGradeDto>> getGrades() {
++        return ResponseEntity.ok(studentProfileService.getGrades(getCurrentUserId()));
++    }
++
++    @GetMapping("/admission")
++    public ResponseEntity<AdmissionDto> getAdmission() {
++        return ResponseEntity.ok(studentProfileService.getAdmission(getCurrentUserId()));
++    }
++
++    @GetMapping("/meeting-info")
++    public ResponseEntity<StudentMeetingInfoDto> getMeetingInfo() {
++        return ResponseEntity.ok(studentProfileService.getMeetingInfo(getCurrentUserId()));
++    }
++
++    @PostMapping("/thesis")
++    public ResponseEntity<Void> uploadThesis(@RequestParam("file") MultipartFile file) {
++        studentProfileService.uploadThesis(getCurrentUserId(), file);
++        return ResponseEntity.ok().build();
++    }
++
++    @GetMapping("/notifications")
++    public ResponseEntity<List<NotificationDto>> getNotifications() {
++        return ResponseEntity.ok(studentProfileService.getNotifications(getCurrentUserId()));
++    }
++
++    private UUID getCurrentUserId() {
++        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
++        // Получаем userId из токена/username
++        String username = auth.getName();
++        return studentProfileService.findUserIdByUsername(username);
++    }
++}
+diff --git a/frontend-web/src/App.tsx b/frontend-web/src/App.tsx
+index 823fc28..5c1faf1 100644
+--- a/frontend-web/src/App.tsx
++++ b/frontend-web/src/App.tsx
+@@ -2,6 +2,7 @@ import React from 'react';
+ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+ import { AppLayout } from './components/layout/AppLayout';
++import { PortalSelector } from './components/PortalSelector';
+ import { LoginPage } from './pages/LoginPage';
+ import { DashboardPage } from './pages/DashboardPage';
+ import { MeetingsPage } from './pages/MeetingsPage';
+@@ -13,6 +14,7 @@ import { AdminPage } from './pages/AdminPage';
+ import { AuditPage } from './pages/AuditPage';
+ import { NotificationsPage } from './pages/NotificationsPage';
+ import { StudentDashboardPage } from './pages/StudentDashboardPage';
++import { StudentProfilePage } from './pages/StudentProfilePage';
+ import { GroupsPage } from './pages/GroupsPage';
+ import { DisciplinesPage } from './pages/DisciplinesPage';
+ import { GradebookPage } from './pages/GradebookPage';
+@@ -23,54 +25,94 @@ import { TeachersPage } from './pages/TeachersPage';
+ import { ReportsPage } from './pages/ReportsPage';
+ import { GACPage } from './pages/GACPage';
+ import { GroupDetailPage } from './pages/GroupDetailPage';
+-import { StudentProfilePage } from './pages/StudentProfilePage';
+ import { useAuthStore } from './store/authStore';
+ 
+ const queryClient = new QueryClient();
+ 
+-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
++function AppRoutes() {
++  const { isAuthenticated, primaryPortal } = useAuthStore();
++
++  if (!isAuthenticated) {
++    return <LoginPage />;
++  }
++
++  // Если ещё не выбран портал — показать селектор
++  if (!primaryPortal) {
++    return <PortalSelector />;
++  }
++
++  return (
++    <AppLayout>
++      <Routes>
++        {/* === ОБЩИЕ === */}
++        <Route path="/" element={<DashboardPage />} />
++        <Route path="/notifications" element={<NotificationsPage />} />
++
++        {/* === ПОРТАЛ: АДМИНИСТРАЦИЯ === */}
++        <Route path="/admin" element={<AdminPage />} />
++        <Route path="/audit" element={<AuditPage />} />
++
++        {/* === ПОРТАЛ: МЕТОДИСТ === */}
++        <Route path="/groups" element={<GroupsPage />} />
++        <Route path="/groups/:id" element={<GroupDetailPage />} />
++        <Route path="/disciplines" element={<DisciplinesPage />} />
++        <Route path="/gradebook" element={<GradebookPage />} />
++        <Route path="/statements" element={<StatementsPage />} />
++        <Route path="/statements/create" element={<StatementCreatePage />} />
++        <Route path="/statements/:id/edit" element={<StatementEditPage />} />
++        <Route path="/teachers" element={<TeachersPage />} />
++        <Route path="/admissions" element={<AdmissionsPage />} />
++
++        {/* === ПОРТАЛ: ГЭК === */}
++        <Route path="/gac" element={<GACPage />} />
++        <Route path="/meetings" element={<MeetingsPage />} />
++        <Route path="/meetings/:id" element={<MeetingDetailPage />} />
++        <Route path="/protocols" element={<ProtocolsPage />} />
++        <Route path="/voting-monitor" element={<VotingMonitorPage />} />
++
++        {/* === ПОРТАЛ: СТУДЕНТ === */}
++        <Route path="/student" element={<StudentDashboardPage />} />
++        <Route path="/student/profile" element={<StudentProfilePage />} />
++
++        {/* === ДЕКАНАТ (временно — отчёты) === */}
++        <Route path="/reports" element={<ReportsPage />} />
++
++        {/* Перенаправление по primaryPortal */}
++        <Route
++          path="*"
++          element={
++            <Navigate
++              to={
++                primaryPortal === 'student'
++                  ? '/student'
++                  : primaryPortal === 'gek'
++                    ? '/meetings'
++                    : primaryPortal === 'methodist'
++                      ? '/groups'
++                      : primaryPortal === 'admin'
++                        ? '/admin'
++                        : '/'
++              }
++              replace
++            />
++          }
++        />
++      </Routes>
++    </AppLayout>
++  );
+ }
+ 
+ export default function App() {
++  const { initFromStorage } = useAuthStore();
++
++  React.useEffect(() => {
++    initFromStorage();
++  }, []);
++
+   return (
+     <QueryClientProvider client={queryClient}>
+       <BrowserRouter>
+-        <Routes>
+-          <Route path="/login" element={<LoginPage />} />
+-          <Route
+-            path="/"
+-            element={
+-              <ProtectedRoute>
+-                <AppLayout />
+-              </ProtectedRoute>
+-            }
+-          >
+-            <Route index element={<DashboardPage />} />
+-            <Route path="meetings" element={<MeetingsPage />} />
+-            <Route path="meetings/:id" element={<MeetingDetailPage />} />
+-            <Route path="voting-monitor" element={<VotingMonitorPage />} />
+-            <Route path="voting-monitor/:meetingId" element={<VotingMonitorPage />} />
+-            <Route path="protocols" element={<ProtocolsPage />} />
+-            <Route path="admissions" element={<AdmissionsPage />} />
+-            <Route path="admin" element={<AdminPage />} />
+-            <Route path="audit" element={<AuditPage />} />
+-            <Route path="notifications" element={<NotificationsPage />} />
+-            <Route path="student/profile" element={<StudentDashboardPage />} />
+-            <Route path="groups" element={<GroupsPage />} />
+-            <Route path="disciplines" element={<DisciplinesPage />} />
+-            <Route path="gradebook" element={<GradebookPage />} />
+-            <Route path="statements" element={<StatementsPage />} />
+-            <Route path="statements/new" element={<StatementCreatePage />} />
+-            <Route path="statements/:id" element={<StatementEditPage />} />
+-            <Route path="groups/:id" element={<GroupDetailPage />} />
+-            <Route path="students/:id" element={<StudentProfilePage />} />
+-            <Route path="teachers" element={<TeachersPage />} />
+-            <Route path="reports" element={<ReportsPage />} />
+-            <Route path="gac" element={<GACPage />} />
+-          </Route>
+-        </Routes>
++        <AppRoutes />
+       </BrowserRouter>
+     </QueryClientProvider>
+   );
+diff --git a/frontend-web/src/components/PortalSelector.tsx b/frontend-web/src/components/PortalSelector.tsx
+new file mode 100644
+index 0000000..f7b317d
+--- /dev/null
++++ b/frontend-web/src/components/PortalSelector.tsx
+@@ -0,0 +1,107 @@
++import React from 'react';
++import { useNavigate } from 'react-router-dom';
++import { useAuthStore, type Portal } from '../../store/authStore';
++import {
++  Shield,
++  Building2,
++  School,
++  Vote,
++  BookOpen,
++  GraduationCap,
++  ArrowRight,
++} from 'lucide-react';
++
++const portalConfig: Record<Portal, { label: string; icon: React.ReactNode; color: string; path: string }> = {
++  admin: {
++    label: 'Администрация',
++    icon: <Shield size={32} />,
++    color: 'bg-purple-600 hover:bg-purple-700',
++    path: '/admin',
++  },
++  deanery: {
++    label: 'Деканат',
++    icon: <Building2 size={32} />,
++    color: 'bg-blue-600 hover:bg-blue-700',
++    path: '/deanery',
++  },
++  department: {
++    label: 'Кафедра',
++    icon: <School size={32} />,
++    color: 'bg-teal-600 hover:bg-teal-700',
++    path: '/department',
++  },
++  gek: {
++    label: 'Комиссия ГИА (ГЭК)',
++    icon: <Vote size={32} />,
++    color: 'bg-amber-600 hover:bg-amber-700',
++    path: '/gek',
++  },
++  methodist: {
++    label: 'Методист',
++    icon: <BookOpen size={32} />,
++    color: 'bg-emerald-600 hover:bg-emerald-700',
++    path: '/methodist',
++  },
++  student: {
++    label: 'Студент',
++    icon: <GraduationCap size={32} />,
++    color: 'bg-indigo-600 hover:bg-indigo-700',
++    path: '/student',
++  },
++};
++
++export const PortalSelector: React.FC = () => {
++  const { availablePortals, primaryPortal, setPrimaryPortal, user } = useAuthStore();
++  const navigate = useNavigate();
++
++  const handleSelect = (portal: Portal) => {
++    setPrimaryPortal(portal);
++    navigate(portalConfig[portal].path);
++  };
++
++  return (
++    <div className="flex min-h-screen items-center justify-center bg-[var(--color-bg)]">
++      <div className="w-full max-w-2xl p-8">
++        <h1 className="mb-2 text-center text-2xl font-bold text-[var(--color-text)]">
++          Добро пожаловать, {user?.fullName || 'пользователь'}
++        </h1>
++        <p className="mb-8 text-center text-[var(--color-text-muted)]">
++          Выберите портал для работы
++        </p>
++
++        <div className="grid gap-4 sm:grid-cols-2">
++          {availablePortals.map((portal) => {
++            const config = portalConfig[portal];
++            const isPrimary = portal === primaryPortal;
++
++            return (
++              <button
++                key={portal}
++                onClick={() => handleSelect(portal)}
++                className={[
++                  'flex items-center gap-4 rounded-xl p-6 text-white transition-all',
++                  'shadow-lg hover:shadow-xl hover:scale-[1.02]',
++                  config.color,
++                  isPrimary ? 'ring-4 ring-white/50' : '',
++                ].join(' ')}
++              >
++                {config.icon}
++                <div className="text-left">
++                  <div className="text-lg font-bold">{config.label}</div>
++                  {isPrimary && (
++                    <div className="text-sm opacity-80">Основной портал</div>
++                  )}
++                </div>
++                <ArrowRight className="ml-auto" size={20} />
++              </button>
++            );
++          })}
++        </div>
++
++        <p className="mt-6 text-center text-sm text-[var(--color-text-muted)]">
++          Вы можете переключаться между порталами через меню в любой момент
++        </p>
++      </div>
++    </div>
++  );
++};
+diff --git a/frontend-web/src/components/layout/Sidebar.tsx b/frontend-web/src/components/layout/Sidebar.tsx
+index 57d942a..9a28046 100644
+--- a/frontend-web/src/components/layout/Sidebar.tsx
++++ b/frontend-web/src/components/layout/Sidebar.tsx
+@@ -15,6 +15,10 @@ import {
+   UserCircle,
+   ListChecks,
+   BarChart3,
++  Shield,
++  Building2,
++  School,
++  GraduationCap as CapIcon,
+ } from 'lucide-react';
+ 
+ interface NavItem {
+@@ -24,20 +28,65 @@ interface NavItem {
+   roles: string[];
+ }
+ 
+-const navItems: NavItem[] = [
+-  { label: 'Главная', path: '/', icon: <LayoutDashboard size={18} />, roles: ['ADMIN', 'METHODIST', 'SECRETARY', 'CHAIRMAN', 'GEK_MEMBER', 'STUDENT'] },
+-  { label: 'Группы', path: '/groups', icon: <Users size={18} />, roles: ['ADMIN', 'METHODIST', 'SECRETARY'] },
+-  { label: 'Дисциплины', path: '/disciplines', icon: <BookOpen size={18} />, roles: ['ADMIN', 'METHODIST', 'SECRETARY'] },
+-  { label: 'Журнал', path: '/gradebook', icon: <GraduationCap size={18} />, roles: ['ADMIN', 'METHODIST', 'SECRETARY'] },
+-  { label: 'Ведомости', path: '/statements', icon: <ListChecks size={18} />, roles: ['ADMIN', 'METHODIST', 'SECRETARY'] },
+-  { label: 'Преподаватели', path: '/teachers', icon: <UserCircle size={18} />, roles: ['ADMIN', 'METHODIST', 'SECRETARY'] },
+-  { label: 'Отчёты', path: '/reports', icon: <BarChart3 size={18} />, roles: ['ADMIN', 'METHODIST', 'SECRETARY', 'CHAIRMAN'] },
+-  { label: 'ГАК', path: '/gac', icon: <Vote size={18} />, roles: ['ADMIN', 'SECRETARY', 'CHAIRMAN', 'GEK_MEMBER'] },
+-  { label: 'Заседания', path: '/meetings', icon: <CalendarDays size={18} />, roles: ['ADMIN', 'SECRETARY', 'CHAIRMAN', 'GEK_MEMBER'] },
+-  { label: 'Протоколы', path: '/protocols', icon: <FileText size={18} />, roles: ['ADMIN', 'SECRETARY', 'CHAIRMAN'] },
+-  { label: 'Допуски', path: '/admissions', icon: <ClipboardCheck size={18} />, roles: ['ADMIN', 'METHODIST'] },
+-  { label: 'Табло', path: '/voting-monitor', icon: <Monitor size={18} />, roles: ['ADMIN', 'SECRETARY', 'CHAIRMAN'] },
+-  { label: 'Пользователи', path: '/admin', icon: <UserCircle size={18} />, roles: ['ADMIN'] },
++interface PortalSection {
++  title: string;
++  icon: React.ReactNode;
++  items: NavItem[];
++}
++
++const portalSections: PortalSection[] = [
++  {
++    title: 'Главное',
++    icon: <LayoutDashboard size={16} />,
++    items: [
++      { label: 'Главная', path: '/', icon: <LayoutDashboard size={18} />, roles: ['ADMIN', 'METHODIST', 'SECRETARY', 'CHAIRMAN', 'GEK_MEMBER', 'STUDENT', 'DEAN'] },
++    ],
++  },
++  {
++    title: 'Комиссия ГИА (ГЭК)',
++    icon: <Vote size={16} />,
++    items: [
++      { label: 'ГАК', path: '/gac', icon: <Vote size={18} />, roles: ['ADMIN', 'SECRETARY', 'CHAIRMAN', 'GEK_MEMBER'] },
++      { label: 'Заседания', path: '/meetings', icon: <CalendarDays size={18} />, roles: ['ADMIN', 'SECRETARY', 'CHAIRMAN', 'GEK_MEMBER'] },
++      { label: 'Протоколы', path: '/protocols', icon: <FileText size={18} />, roles: ['ADMIN', 'SECRETARY', 'CHAIRMAN'] },
++      { label: 'Табло', path: '/voting-monitor', icon: <Monitor size={18} />, roles: ['ADMIN', 'SECRETARY', 'CHAIRMAN'] },
++    ],
++  },
++  {
++    title: 'Методист',
++    icon: <BookOpen size={16} />,
++    items: [
++      { label: 'Группы', path: '/groups', icon: <Users size={18} />, roles: ['ADMIN', 'METHODIST', 'SECRETARY'] },
++      { label: 'Дисциплины', path: '/disciplines', icon: <BookOpen size={18} />, roles: ['ADMIN', 'METHODIST', 'SECRETARY'] },
++      { label: 'Журнал', path: '/gradebook', icon: <GraduationCap size={18} />, roles: ['ADMIN', 'METHODIST', 'SECRETARY'] },
++      { label: 'Ведомости', path: '/statements', icon: <ListChecks size={18} />, roles: ['ADMIN', 'METHODIST', 'SECRETARY'] },
++      { label: 'Преподаватели', path: '/teachers', icon: <UserCircle size={18} />, roles: ['ADMIN', 'METHODIST', 'SECRETARY'] },
++      { label: 'Допуски', path: '/admissions', icon: <ClipboardCheck size={18} />, roles: ['ADMIN', 'METHODIST'] },
++    ],
++  },
++  {
++    title: 'Деканат',
++    icon: <Building2 size={16} />,
++    items: [
++      { label: 'Отчёты', path: '/reports', icon: <BarChart3 size={18} />, roles: ['ADMIN', 'METHODIST', 'SECRETARY', 'CHAIRMAN', 'DEAN'] },
++      // TODO: добавить /deanery/orders, /deanery/movements при появлении модулей
++    ],
++  },
++  {
++    title: 'Студент',
++    icon: <CapIcon size={16} />,
++    items: [
++      // Студентские страницы доступны через /student/* роуты
++      // Здесь отображаются только если роль STUDENT
++    ],
++  },
++  {
++    title: 'Администрация',
++    icon: <Shield size={16} />,
++    items: [
++      { label: 'Пользователи', path: '/admin', icon: <Shield size={18} />, roles: ['ADMIN'] },
++    ],
++  },
+ ];
+ 
+ export const Sidebar: React.FC = () => {
+@@ -45,7 +94,13 @@ export const Sidebar: React.FC = () => {
+   const location = useLocation();
+   const { role, logout } = useAuth();
+ 
+-  const filtered = navItems.filter((item) => item.roles.includes(role || ''));
++  // Фильтруем секции: оставляем только те, где есть хотя бы один доступный пункт
++  const filteredSections = portalSections
++    .map((section) => ({
++      ...section,
++      items: section.items.filter((item) => item.roles.includes(role || '')),
++    }))
++    .filter((section) => section.items.length > 0);
+ 
+   return (
+     <aside className="flex h-full w-64 flex-col border-r border-[var(--color-border)] bg-white">
+@@ -53,27 +108,40 @@ export const Sidebar: React.FC = () => {
+         <Vote className="text-[var(--color-primary)]" size={24} />
+         <span className="text-lg font-bold text-[var(--color-text)]">ГИА СПбУТУИЭ</span>
+       </div>
+-      <nav className="flex-1 space-y-1 p-3">
+-        {filtered.map((item) => {
+-          const active = location.pathname === item.path;
+-          return (
+-            <button
+-              key={item.path}
+-              onClick={() => navigate(item.path)}
+-              className={[
+-                'flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors',
+-                active
+-                  ? 'bg-[var(--color-primary)] text-white'
+-                  : 'text-[var(--color-text-muted)] hover:bg-[var(--color-bg)] hover:text-[var(--color-text)]',
+-              ].join(' ')}
+-            >
+-              {item.icon}
+-              {item.label}
+-            </button>
+-          );
+-        })}
++      <nav className="flex-1 space-y-4 overflow-y-auto p-3">
++        {filteredSections.map((section) => (
++          <div key={section.title}>
++            <div className="mb-2 flex items-center gap-2 px-3 text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
++              {section.icon}
++              {section.title}
++            </div>
++            <div className="space-y-0.5">
++              {section.items.map((item) => {
++                const active = location.pathname === item.path;
++                return (
++                  <button
++                    key={item.path}
++                    onClick={() => navigate(item.path)}
++                    className={[
++                      'flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
++                      active
++                        ? 'bg-[var(--color-primary)] text-white'
++                        : 'text-[var(--color-text-muted)] hover:bg-[var(--color-bg)] hover:text-[var(--color-text)]',
++                    ].join(' ')}
++                  >
++                    {item.icon}
++                    {item.label}
++                  </button>
++                );
++              })}
++            </div>
++          </div>
++        ))}
+       </nav>
+       <div className="border-t border-[var(--color-border)] p-3">
++        <div className="mb-2 px-3 text-xs text-[var(--color-text-muted)]">
++          Роль: <span className="font-medium text-[var(--color-text)]">{role || '—'}</span>
++        </div>
+         <button
+           onClick={logout}
+           className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-[var(--color-danger)] hover:bg-red-50"
+diff --git a/frontend-web/src/portals/portal-admin/App.tsx b/frontend-web/src/portals/portal-admin/App.tsx
+new file mode 100644
+index 0000000..b3e90fd
+--- /dev/null
++++ b/frontend-web/src/portals/portal-admin/App.tsx
+@@ -0,0 +1,34 @@
++import React from 'react';
++import { BrowserRouter, Routes, Route } from 'react-router-dom';
++import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
++import { AdminSidebar } from './components/AdminSidebar';
++import { AdminPage } from '../../pages/AdminPage';
++import { AuditPage } from '../../pages/AuditPage';
++import { useAuthStore } from '../../store/authStore';
++
++const queryClient = new QueryClient();
++
++export default function PortalAdminApp() {
++  const { isAuthenticated } = useAuthStore();
++
++  if (!isAuthenticated) {
++    return <div className="p-8">Требуется авторизация</div>;
++  }
++
++  return (
++    <QueryClientProvider client={queryClient}>
++      <BrowserRouter>
++        <div className="flex h-screen">
++          <AdminSidebar />
++          <main className="flex-1 overflow-auto bg-[var(--color-bg)]">
++            <Routes>
++              <Route path="/" element={<AdminPage />} />
++              <Route path="/audit" element={<AuditPage />} />
++              <Route path="/settings" element={<div className="p-8"><h1 className="text-2xl font-bold">Настройки</h1><p className="mt-4 text-gray-500">Страница в разработке</p></div>} />
++            </Routes>
++          </main>
++        </div>
++      </BrowserRouter>
++    </QueryClientProvider>
++  );
++}
+diff --git a/frontend-web/src/portals/portal-admin/components/AdminSidebar.tsx b/frontend-web/src/portals/portal-admin/components/AdminSidebar.tsx
+new file mode 100644
+index 0000000..18e7e3b
+--- /dev/null
++++ b/frontend-web/src/portals/portal-admin/components/AdminSidebar.tsx
+@@ -0,0 +1,61 @@
++import React from 'react';
++import { useLocation, useNavigate } from 'react-router-dom';
++import {
++  Shield,
++  Users,
++  Settings,
++  LayoutDashboard,
++  LogOut,
++} from 'lucide-react';
++import { useAuthStore } from '../../../store/authStore';
++
++const navItems = [
++  { label: 'Главная', path: '/', icon: <LayoutDashboard size={18} /> },
++  { label: 'Пользователи', path: '/users', icon: <Users size={18} /> },
++  { label: 'Аудит', path: '/audit', icon: <Shield size={18} /> },
++  { label: 'Настройки', path: '/settings', icon: <Settings size={18} /> },
++];
++
++export const AdminSidebar: React.FC = () => {
++  const navigate = useNavigate();
++  const location = useLocation();
++  const { logout } = useAuthStore();
++
++  return (
++    <aside className="flex h-full w-64 flex-col border-r border-[var(--color-border)] bg-white">
++      <div className="flex h-16 items-center gap-2 border-b border-[var(--color-border)] px-4">
++        <Shield className="text-[var(--color-primary)]" size={24} />
++        <span className="text-lg font-bold text-[var(--color-text)]">Админ</span>
++      </div>
++      <nav className="flex-1 space-y-1 p-3">
++        {navItems.map((item) => {
++          const active = location.pathname === item.path;
++          return (
++            <button
++              key={item.path}
++              onClick={() => navigate(item.path)}
++              className={[
++                'flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors',
++                active
++                  ? 'bg-[var(--color-primary)] text-white'
++                  : 'text-[var(--color-text-muted)] hover:bg-[var(--color-bg)] hover:text-[var(--color-text)]',
++              ].join(' ')}
++            >
++              {item.icon}
++              {item.label}
++            </button>
++          );
++        })}
++      </nav>
++      <div className="border-t border-[var(--color-border)] p-3">
++        <button
++          onClick={logout}
++          className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-[var(--color-danger)] hover:bg-red-50"
++        >
++          <LogOut size={18} />
++          Выход
++        </button>
++      </div>
++    </aside>
++  );
++};
+\ No newline at end of file
+diff --git a/frontend-web/src/portals/portal-deanery/App.tsx b/frontend-web/src/portals/portal-deanery/App.tsx
+new file mode 100644
+index 0000000..286dbfa
+--- /dev/null
++++ b/frontend-web/src/portals/portal-deanery/App.tsx
+@@ -0,0 +1,34 @@
++import React from 'react';
++import { BrowserRouter, Routes, Route } from 'react-router-dom';
++import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
++import { DeanerySidebar } from './components/DeanerySidebar';
++import { ReportsPage } from '../../pages/ReportsPage';
++import { useAuthStore } from '../../store/authStore';
++
++const queryClient = new QueryClient();
++
++export default function PortalDeaneryApp() {
++  const { isAuthenticated } = useAuthStore();
++
++  if (!isAuthenticated) {
++    return <div className="p-8">Требуется авторизация</div>;
++  }
++
++  return (
++    <QueryClientProvider client={queryClient}>
++      <BrowserRouter>
++        <div className="flex h-screen">
++          <DeanerySidebar />
++          <main className="flex-1 overflow-auto bg-[var(--color-bg)]">
++            <Routes>
++              <Route path="/" element={<div className="p-8"><h1 className="text-2xl font-bold">Деканат</h1><p className="mt-4 text-gray-500">Приказы и движение контингента</p></div>} />
++              <Route path="/orders" element={<div className="p-8"><h1 className="text-2xl font-bold">Приказы</h1><p className="mt-4 text-gray-500">Страница в разработке</p></div>} />
++              <Route path="/movements" element={<div className="p-8"><h1 className="text-2xl font-bold">Движение контингента</h1><p className="mt-4 text-gray-500">Страница в разработке</p></div>} />
++              <Route path="/reports" element={<ReportsPage />} />
++            </Routes>
++          </main>
++        </div>
++      </BrowserRouter>
++    </QueryClientProvider>
++  );
++}
+diff --git a/frontend-web/src/portals/portal-deanery/components/DeanerySidebar.tsx b/frontend-web/src/portals/portal-deanery/components/DeanerySidebar.tsx
+new file mode 100644
+index 0000000..b426f06
+--- /dev/null
++++ b/frontend-web/src/portals/portal-deanery/components/DeanerySidebar.tsx
+@@ -0,0 +1,62 @@
++import React from 'react';
++import { useLocation, useNavigate } from 'react-router-dom';
++import {
++  Building2,
++  FileText,
++  Users,
++  BarChart3,
++  LayoutDashboard,
++  LogOut,
++} from 'lucide-react';
++import { useAuthStore } from '../../../store/authStore';
++
++const navItems = [
++  { label: 'Главная', path: '/', icon: <LayoutDashboard size={18} /> },
++  { label: 'Приказы', path: '/orders', icon: <FileText size={18} /> },
++  { label: 'Контингент', path: '/movements', icon: <Users size={18} /> },
++  { label: 'Отчёты', path: '/reports', icon: <BarChart3 size={18} /> },
++];
++
++export const DeanerySidebar: React.FC = () => {
++  const navigate = useNavigate();
++  const location = useLocation();
++  const { logout } = useAuthStore();
++
++  return (
++    <aside className="flex h-full w-64 flex-col border-r border-[var(--color-border)] bg-white">
++      <div className="flex h-16 items-center gap-2 border-b border-[var(--color-border)] px-4">
++        <Building2 className="text-[var(--color-primary)]" size={24} />
++        <span className="text-lg font-bold text-[var(--color-text)]">Деканат</span>
++      </div>
++      <nav className="flex-1 space-y-1 p-3">
++        {navItems.map((item) => {
++          const active = location.pathname === item.path;
++          return (
++            <button
++              key={item.path}
++              onClick={() => navigate(item.path)}
++              className={[
++                'flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors',
++                active
++                  ? 'bg-[var(--color-primary)] text-white'
++                  : 'text-[var(--color-text-muted)] hover:bg-[var(--color-bg)] hover:text-[var(--color-text)]',
++              ].join(' ')}
++            >
++              {item.icon}
++              {item.label}
++            </button>
++          );
++        })}
++      </nav>
++      <div className="border-t border-[var(--color-border)] p-3">
++        <button
++          onClick={logout}
++          className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-[var(--color-danger)] hover:bg-red-50"
++        >
++          <LogOut size={18} />
++          Выход
++        </button>
++      </div>
++    </aside>
++  );
++};
+diff --git a/frontend-web/src/portals/portal-department/App.tsx b/frontend-web/src/portals/portal-department/App.tsx
+new file mode 100644
+index 0000000..d780f1b
+--- /dev/null
++++ b/frontend-web/src/portals/portal-department/App.tsx
+@@ -0,0 +1,32 @@
++import React from 'react';
++import { BrowserRouter, Routes, Route } from 'react-router-dom';
++import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
++import { DepartmentSidebar } from './components/DepartmentSidebar';
++import { useAuthStore } from '../../store/authStore';
++
++const queryClient = new QueryClient();
++
++export default function PortalDepartmentApp() {
++  const { isAuthenticated } = useAuthStore();
++
++  if (!isAuthenticated) {
++    return <div className="p-8">Требуется авторизация</div>;
++  }
++
++  return (
++    <QueryClientProvider client={queryClient}>
++      <BrowserRouter>
++        <div className="flex h-screen">
++          <DepartmentSidebar />
++          <main className="flex-1 overflow-auto bg-[var(--color-bg)]">
++            <Routes>
++              <Route path="/" element={<div className="p-8"><h1 className="text-2xl font-bold">Кафедра</h1><p className="mt-4 text-gray-500">Дисциплины, преподаватели, нагрузка</p></div>} />
++              <Route path="/disciplines" element={<div className="p-8"><h1 className="text-2xl font-bold">Дисциплины</h1><p className="mt-4 text-gray-500">Страница в разработке</p></div>} />
++              <Route path="/teachers" element={<div className="p-8"><h1 className="text-2xl font-bold">Преподаватели</h1><p className="mt-4 text-gray-500">Страница в разработке</p></div>} />
++            </Routes>
++          </main>
++        </div>
++      </BrowserRouter>
++    </QueryClientProvider>
++  );
++}
+diff --git a/frontend-web/src/portals/portal-department/components/DepartmentSidebar.tsx b/frontend-web/src/portals/portal-department/components/DepartmentSidebar.tsx
+new file mode 100644
+index 0000000..00e7741
+--- /dev/null
++++ b/frontend-web/src/portals/portal-department/components/DepartmentSidebar.tsx
+@@ -0,0 +1,60 @@
++import React from 'react';
++import { useLocation, useNavigate } from 'react-router-dom';
++import {
++  School,
++  BookOpen,
++  UserCircle,
++  LayoutDashboard,
++  LogOut,
++} from 'lucide-react';
++import { useAuthStore } from '../../../store/authStore';
++
++const navItems = [
++  { label: 'Главная', path: '/', icon: <LayoutDashboard size={18} /> },
++  { label: 'Дисциплины', path: '/disciplines', icon: <BookOpen size={18} /> },
++  { label: 'Преподаватели', path: '/teachers', icon: <UserCircle size={18} /> },
++];
++
++export const DepartmentSidebar: React.FC = () => {
++  const navigate = useNavigate();
++  const location = useLocation();
++  const { logout } = useAuthStore();
++
++  return (
++    <aside className="flex h-full w-64 flex-col border-r border-[var(--color-border)] bg-white">
++      <div className="flex h-16 items-center gap-2 border-b border-[var(--color-border)] px-4">
++        <School className="text-[var(--color-primary)]" size={24} />
++        <span className="text-lg font-bold text-[var(--color-text)]">Кафедра</span>
++      </div>
++      <nav className="flex-1 space-y-1 p-3">
++        {navItems.map((item) => {
++          const active = location.pathname === item.path;
++          return (
++            <button
++              key={item.path}
++              onClick={() => navigate(item.path)}
++              className={[
++                'flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors',
++                active
++                  ? 'bg-[var(--color-primary)] text-white'
++                  : 'text-[var(--color-text-muted)] hover:bg-[var(--color-bg)] hover:text-[var(--color-text)]',
++              ].join(' ')}
++            >
++              {item.icon}
++              {item.label}
++            </button>
++          );
++        })}
++      </nav>
++      <div className="border-t border-[var(--color-border)] p-3">
++        <button
++          onClick={logout}
++          className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-[var(--color-danger)] hover:bg-red-50"
++        >
++          <LogOut size={18} />
++          Выход
++        </button>
++      </div>
++    </aside>
++  );
++};
+\ No newline at end of file
+diff --git a/frontend-web/src/portals/portal-gek/App.tsx b/frontend-web/src/portals/portal-gek/App.tsx
+new file mode 100644
+index 0000000..ce15cd3
+--- /dev/null
++++ b/frontend-web/src/portals/portal-gek/App.tsx
+@@ -0,0 +1,39 @@
++import React from 'react';
++import { BrowserRouter, Routes, Route } from 'react-router-dom';
++import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
++import { GekSidebar } from './components/GekSidebar';
++import { GekDashboardPage } from './pages/GekDashboardPage';
++import { MeetingsPage } from '../../pages/MeetingsPage';
++import { MeetingDetailPage } from '../../pages/MeetingDetailPage';
++import { ProtocolsPage } from '../../pages/ProtocolsPage';
++import { VotingMonitorPage } from '../../pages/VotingMonitorPage';
++import { useAuthStore } from '../../store/authStore';
++
++const queryClient = new QueryClient();
++
++export default function PortalGekApp() {
++  const { isAuthenticated } = useAuthStore();
++
++  if (!isAuthenticated) {
++    return <div className="p-8">Требуется авторизация</div>;
++  }
++
++  return (
++    <QueryClientProvider client={queryClient}>
++      <BrowserRouter>
++        <div className="flex h-screen">
++          <GekSidebar />
++          <main className="flex-1 overflow-auto bg-[var(--color-bg)]">
++            <Routes>
++              <Route path="/" element={<GekDashboardPage />} />
++              <Route path="/meetings" element={<MeetingsPage />} />
++              <Route path="/meetings/:id" element={<MeetingDetailPage />} />
++              <Route path="/protocols" element={<ProtocolsPage />} />
++              <Route path="/monitor" element={<VotingMonitorPage />} />
++            </Routes>
++          </main>
++        </div>
++      </BrowserRouter>
++    </QueryClientProvider>
++  );
++}
+diff --git a/frontend-web/src/portals/portal-gek/components/GekSidebar.tsx b/frontend-web/src/portals/portal-gek/components/GekSidebar.tsx
+new file mode 100644
+index 0000000..973d2ff
+--- /dev/null
++++ b/frontend-web/src/portals/portal-gek/components/GekSidebar.tsx
+@@ -0,0 +1,62 @@
++import React from 'react';
++import { useLocation, useNavigate } from 'react-router-dom';
++import {
++  Vote,
++  CalendarDays,
++  FileText,
++  Monitor,
++  LayoutDashboard,
++  LogOut,
++} from 'lucide-react';
++import { useAuthStore } from '../../../store/authStore';
++
++const navItems = [
++  { label: 'Главная', path: '/', icon: <LayoutDashboard size={18} /> },
++  { label: 'Заседания', path: '/meetings', icon: <CalendarDays size={18} /> },
++  { label: 'Протоколы', path: '/protocols', icon: <FileText size={18} /> },
++  { label: 'Табло', path: '/monitor', icon: <Monitor size={18} /> },
++];
++
++export const GekSidebar: React.FC = () => {
++  const navigate = useNavigate();
++  const location = useLocation();
++  const { logout } = useAuthStore();
++
++  return (
++    <aside className="flex h-full w-64 flex-col border-r border-[var(--color-border)] bg-white">
++      <div className="flex h-16 items-center gap-2 border-b border-[var(--color-border)] px-4">
++        <Vote className="text-[var(--color-primary)]" size={24} />
++        <span className="text-lg font-bold text-[var(--color-text)]">ГЭК</span>
++      </div>
++      <nav className="flex-1 space-y-1 p-3">
++        {navItems.map((item) => {
++          const active = location.pathname === item.path;
++          return (
++            <button
++              key={item.path}
++              onClick={() => navigate(item.path)}
++              className={[
++                'flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors',
++                active
++                  ? 'bg-[var(--color-primary)] text-white'
++                  : 'text-[var(--color-text-muted)] hover:bg-[var(--color-bg)] hover:text-[var(--color-text)]',
++              ].join(' ')}
++            >
++              {item.icon}
++              {item.label}
++            </button>
++          );
++        })}
++      </nav>
++      <div className="border-t border-[var(--color-border)] p-3">
++        <button
++          onClick={logout}
++          className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-[var(--color-danger)] hover:bg-red-50"
++        >
++          <LogOut size={18} />
++          Выход
++        </button>
++      </div>
++    </aside>
++  );
++};
+diff --git a/frontend-web/src/portals/portal-gek/pages/GekDashboardPage.tsx b/frontend-web/src/portals/portal-gek/pages/GekDashboardPage.tsx
+new file mode 100644
+index 0000000..a27f2b3
+--- /dev/null
++++ b/frontend-web/src/portals/portal-gek/pages/GekDashboardPage.tsx
+@@ -0,0 +1,8 @@
++import React from 'react';
++
++export const GekDashboardPage: React.FC = () => (
++  <div className="p-8">
++    <h1 className="text-2xl font-bold">Комиссия ГИА</h1>
++    <p className="mt-4 text-gray-500">Выберите раздел из меню слева</p>
++  </div>
++);
+diff --git a/frontend-web/src/portals/portal-methodist/App.tsx b/frontend-web/src/portals/portal-methodist/App.tsx
+new file mode 100644
+index 0000000..4450624
+--- /dev/null
++++ b/frontend-web/src/portals/portal-methodist/App.tsx
+@@ -0,0 +1,36 @@
++import React from 'react';
++import { BrowserRouter, Routes, Route } from 'react-router-dom';
++import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
++import { MethodistSidebar } from './components/MethodistSidebar';
++import { GroupsPage } from '../../pages/GroupsPage';
++import { DisciplinesPage } from '../../pages/DisciplinesPage';
++import { AdmissionsPage } from '../../pages/AdmissionsPage';
++import { useAuthStore } from '../../store/authStore';
++
++const queryClient = new QueryClient();
++
++export default function PortalMethodistApp() {
++  const { isAuthenticated } = useAuthStore();
++
++  if (!isAuthenticated) {
++    return <div className="p-8">Требуется авторизация</div>;
++  }
++
++  return (
++    <QueryClientProvider client={queryClient}>
++      <BrowserRouter>
++        <div className="flex h-screen">
++          <MethodistSidebar />
++          <main className="flex-1 overflow-auto bg-[var(--color-bg)]">
++            <Routes>
++              <Route path="/" element={<div className="p-8"><h1 className="text-2xl font-bold">Методист</h1><p className="mt-4 text-gray-500">Импорт студентов, допуски, расписание</p></div>} />
++              <Route path="/groups" element={<GroupsPage />} />
++              <Route path="/disciplines" element={<DisciplinesPage />} />
++              <Route path="/admissions" element={<AdmissionsPage />} />
++            </Routes>
++          </main>
++        </div>
++      </BrowserRouter>
++    </QueryClientProvider>
++  );
++}
+diff --git a/frontend-web/src/portals/portal-methodist/components/MethodistSidebar.tsx b/frontend-web/src/portals/portal-methodist/components/MethodistSidebar.tsx
+new file mode 100644
+index 0000000..2509df3
+--- /dev/null
++++ b/frontend-web/src/portals/portal-methodist/components/MethodistSidebar.tsx
+@@ -0,0 +1,61 @@
++import React from 'react';
++import { useLocation, useNavigate } from 'react-router-dom';
++import {
++  BookOpen,
++  Users,
++  ClipboardCheck,
++  LayoutDashboard,
++  LogOut,
++} from 'lucide-react';
++import { useAuthStore } from '../../../store/authStore';
++
++const navItems = [
++  { label: 'Главная', path: '/', icon: <LayoutDashboard size={18} /> },
++  { label: 'Группы', path: '/groups', icon: <Users size={18} /> },
++  { label: 'Дисциплины', path: '/disciplines', icon: <BookOpen size={18} /> },
++  { label: 'Допуски', path: '/admissions', icon: <ClipboardCheck size={18} /> },
++];
++
++export const MethodistSidebar: React.FC = () => {
++  const navigate = useNavigate();
++  const location = useLocation();
++  const { logout } = useAuthStore();
++
++  return (
++    <aside className="flex h-full w-64 flex-col border-r border-[var(--color-border)] bg-white">
++      <div className="flex h-16 items-center gap-2 border-b border-[var(--color-border)] px-4">
++        <BookOpen className="text-[var(--color-primary)]" size={24} />
++        <span className="text-lg font-bold text-[var(--color-text)]">Методист</span>
++      </div>
++      <nav className="flex-1 space-y-1 p-3">
++        {navItems.map((item) => {
++          const active = location.pathname === item.path;
++          return (
++            <button
++              key={item.path}
++              onClick={() => navigate(item.path)}
++              className={[
++                'flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors',
++                active
++                  ? 'bg-[var(--color-primary)] text-white'
++                  : 'text-[var(--color-text-muted)] hover:bg-[var(--color-bg)] hover:text-[var(--color-text)]',
++              ].join(' ')}
++            >
++              {item.icon}
++              {item.label}
++            </button>
++          );
++        })}
++      </nav>
++      <div className="border-t border-[var(--color-border)] p-3">
++        <button
++          onClick={logout}
++          className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-[var(--color-danger)] hover:bg-red-50"
++        >
++          <LogOut size={18} />
++          Выход
++        </button>
++      </div>
++    </aside>
++  );
++};
+\ No newline at end of file
+diff --git a/frontend-web/src/portals/portal-student/App.tsx b/frontend-web/src/portals/portal-student/App.tsx
+new file mode 100644
+index 0000000..f906e02
+--- /dev/null
++++ b/frontend-web/src/portals/portal-student/App.tsx
+@@ -0,0 +1,33 @@
++import React from 'react';
++import { BrowserRouter, Routes, Route } from 'react-router-dom';
++import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
++import { StudentSidebar } from './components/StudentSidebar';
++import { StudentDashboardPage } from '../../pages/StudentDashboardPage';
++import { StudentProfilePage } from '../../pages/StudentProfilePage';
++import { useAuthStore } from '../../store/authStore';
++
++const queryClient = new QueryClient();
++
++export default function PortalStudentApp() {
++  const { isAuthenticated } = useAuthStore();
++
++  if (!isAuthenticated) {
++    return <div className="p-8">Требуется авторизация</div>;
++  }
++
++  return (
++    <QueryClientProvider client={queryClient}>
++      <BrowserRouter>
++        <div className="flex h-screen">
++          <StudentSidebar />
++          <main className="flex-1 overflow-auto bg-[var(--color-bg)]">
++            <Routes>
++              <Route path="/" element={<StudentDashboardPage />} />
++              <Route path="/profile" element={<StudentProfilePage />} />
++            </Routes>
++          </main>
++        </div>
++      </BrowserRouter>
++    </QueryClientProvider>
++  );
++}
+diff --git a/frontend-web/src/portals/portal-student/components/StudentSidebar.tsx b/frontend-web/src/portals/portal-student/components/StudentSidebar.tsx
+new file mode 100644
+index 0000000..b5ef363
+--- /dev/null
++++ b/frontend-web/src/portals/portal-student/components/StudentSidebar.tsx
+@@ -0,0 +1,58 @@
++import React from 'react';
++import { useLocation, useNavigate } from 'react-router-dom';
++import {
++  GraduationCap,
++  UserCircle,
++  LayoutDashboard,
++  LogOut,
++} from 'lucide-react';
++import { useAuthStore } from '../../../store/authStore';
++
++const navItems = [
++  { label: 'Главная', path: '/', icon: <LayoutDashboard size={18} /> },
++  { label: 'Профиль', path: '/profile', icon: <UserCircle size={18} /> },
++];
++
++export const StudentSidebar: React.FC = () => {
++  const navigate = useNavigate();
++  const location = useLocation();
++  const { logout } = useAuthStore();
++
++  return (
++    <aside className="flex h-full w-64 flex-col border-r border-[var(--color-border)] bg-white">
++      <div className="flex h-16 items-center gap-2 border-b border-[var(--color-border)] px-4">
++        <GraduationCap className="text-[var(--color-primary)]" size={24} />
++        <span className="text-lg font-bold text-[var(--color-text)]">Студент</span>
++      </div>
++      <nav className="flex-1 space-y-1 p-3">
++        {navItems.map((item) => {
++          const active = location.pathname === item.path;
++          return (
++            <button
++              key={item.path}
++              onClick={() => navigate(item.path)}
++              className={[
++                'flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors',
++                active
++                  ? 'bg-[var(--color-primary)] text-white'
++                  : 'text-[var(--color-text-muted)] hover:bg-[var(--color-bg)] hover:text-[var(--color-text)]',
++              ].join(' ')}
++            >
++              {item.icon}
++              {item.label}
++            </button>
++          );
++        })}
++      </nav>
++      <div className="border-t border-[var(--color-border)] p-3">
++        <button
++          onClick={logout}
++          className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-[var(--color-danger)] hover:bg-red-50"
++        >
++          <LogOut size={18} />
++          Выход
++        </button>
++      </div>
++    </aside>
++  );
++};
+diff --git a/frontend-web/src/store/authStore.ts b/frontend-web/src/store/authStore.ts
+index 5e3977f..18d1d7f 100644
+--- a/frontend-web/src/store/authStore.ts
++++ b/frontend-web/src/store/authStore.ts
+@@ -5,35 +5,115 @@ interface User {
+   username: string;
+   fullName: string;
+   email?: string;
+-  role: string;
+ }
+ 
++export type UserRole =
++  | 'SYSTEM_ADMIN' | 'UNIVERSITY_ADMIN'
++  | 'DEAN' | 'DEAN_SECRETARY'
++  | 'DEPARTMENT_HEAD' | 'DEPARTMENT_SECRETARY' | 'SUPERVISOR'
++  | 'GEK_SECRETARY' | 'GEK_CHAIRMAN' | 'GEK_MEMBER'
++  | 'METHODIST'
++  | 'STUDENT'
++  // Legacy (переходные)
++  | 'ADMIN' | 'SECRETARY' | 'CHAIRMAN';
++
++export type Portal = 'admin' | 'deanery' | 'department' | 'gek' | 'methodist' | 'student';
++
+ interface AuthState {
+   accessToken: string | null;
+-  role: string | null;
++  refreshToken: string | null;
+   user: User | null;
++  roles: UserRole[];
++  availablePortals: Portal[];
++  primaryPortal: Portal | null;
+   isAuthenticated: boolean;
+-  login: (token: string, refresh: string, role: string, user: User) => void;
++  isLoading: boolean;
++
++  login: (token: string, refresh: string, user: User, roles: UserRole[], portals: Portal[], primary: Portal) => void;
+   logout: () => void;
++  setPrimaryPortal: (portal: Portal) => void;
++  initFromStorage: () => void;
+ }
+ 
++const STORAGE_KEYS = {
++  accessToken: 'accessToken',
++  refreshToken: 'refreshToken',
++  user: 'user',
++  roles: 'roles',
++  portals: 'portals',
++  primaryPortal: 'primaryPortal',
++};
++
++const parseJSON = <T,>(str: string | null, fallback: T): T => {
++  if (!str) return fallback;
++  try { return JSON.parse(str); } catch { return fallback; }
++};
++
+ export const useAuthStore = create<AuthState>((set) => ({
+-  accessToken: localStorage.getItem('accessToken'),
+-  role: localStorage.getItem('role'),
+-  user: JSON.parse(localStorage.getItem('user') || 'null'),
+-  isAuthenticated: !!localStorage.getItem('accessToken'),
+-  login: (token, refresh, role, user) => {
+-    localStorage.setItem('accessToken', token);
+-    localStorage.setItem('refreshToken', refresh);
+-    localStorage.setItem('role', role);
+-    localStorage.setItem('user', JSON.stringify(user));
+-    set({ accessToken: token, role, user, isAuthenticated: true });
++  accessToken: null,
++  refreshToken: null,
++  user: null,
++  roles: [],
++  availablePortals: [],
++  primaryPortal: null,
++  isAuthenticated: false,
++  isLoading: true,
++
++  login: (token, refresh, user, roles, portals, primary) => {
++    localStorage.setItem(STORAGE_KEYS.accessToken, token);
++    localStorage.setItem(STORAGE_KEYS.refreshToken, refresh);
++    localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(user));
++    localStorage.setItem(STORAGE_KEYS.roles, JSON.stringify(roles));
++    localStorage.setItem(STORAGE_KEYS.portals, JSON.stringify(portals));
++    localStorage.setItem(STORAGE_KEYS.primaryPortal, primary);
++    set({
++      accessToken: token,
++      refreshToken: refresh,
++      user,
++      roles,
++      availablePortals: portals,
++      primaryPortal: primary,
++      isAuthenticated: true,
++      isLoading: false,
++    });
+   },
++
+   logout: () => {
+-    localStorage.removeItem('accessToken');
+-    localStorage.removeItem('refreshToken');
+-    localStorage.removeItem('role');
+-    localStorage.removeItem('user');
+-    set({ accessToken: null, role: null, user: null, isAuthenticated: false });
++    Object.values(STORAGE_KEYS).forEach((k) => localStorage.removeItem(k));
++    set({
++      accessToken: null,
++      refreshToken: null,
++      user: null,
++      roles: [],
++      availablePortals: [],
++      primaryPortal: null,
++      isAuthenticated: false,
++      isLoading: false,
++    });
++  },
++
++  setPrimaryPortal: (portal) => {
++    localStorage.setItem(STORAGE_KEYS.primaryPortal, portal);
++    set({ primaryPortal: portal });
++  },
++
++  initFromStorage: () => {
++    const token = localStorage.getItem(STORAGE_KEYS.accessToken);
++    const refresh = localStorage.getItem(STORAGE_KEYS.refreshToken);
++    const user = parseJSON<User | null>(localStorage.getItem(STORAGE_KEYS.user), null);
++    const roles = parseJSON<UserRole[]>(localStorage.getItem(STORAGE_KEYS.roles), []);
++    const portals = parseJSON<Portal[]>(localStorage.getItem(STORAGE_KEYS.portals), []);
++    const primary = localStorage.getItem(STORAGE_KEYS.primaryPortal) as Portal | null;
++
++    set({
++      accessToken: token,
++      refreshToken: refresh,
++      user,
++      roles,
++      availablePortals: portals,
++      primaryPortal: primary,
++      isAuthenticated: !!token,
++      isLoading: false,
++    });
+   },
+ }));
+-- 
+2.43.0
+

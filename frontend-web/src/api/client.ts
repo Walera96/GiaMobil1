@@ -43,6 +43,9 @@ api.interceptors.response.use(
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('role');
         localStorage.removeItem('user');
+        localStorage.removeItem('roles');
+        localStorage.removeItem('portals');
+        localStorage.removeItem('primaryPortal');
         window.location.href = '/login';
         return Promise.reject(error);
       }

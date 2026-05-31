@@ -23,19 +23,19 @@ public class DefenseScheduleController {
     }
 
     @PostMapping("/preview")
-    @PreAuthorize("hasAnyRole('ADMIN', 'METHODIST', 'SECRETARY')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'METHODIST', 'GEK_SECRETARY')")
     public ResponseEntity<DefenseSchedulePreviewDto> previewSchedule(@RequestBody DefenseScheduleRequestDto request) {
         return ResponseEntity.ok(scheduleService.generatePreview(request));
     }
 
     @PostMapping("/generate")
-    @PreAuthorize("hasAnyRole('ADMIN', 'METHODIST', 'SECRETARY')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'METHODIST', 'GEK_SECRETARY')")
     public ResponseEntity<DefenseSchedulePreviewDto> generateSchedule(@RequestBody DefenseScheduleRequestDto request) {
         return ResponseEntity.ok(scheduleService.generateAndSave(request));
     }
 
     @GetMapping("/group/{groupId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'METHODIST', 'SECRETARY', 'STUDENT', 'GEK_MEMBER')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'METHODIST', 'GEK_SECRETARY', 'STUDENT', 'GEK_MEMBER')")
     public ResponseEntity<List<DefenseDayDto>> getScheduleByGroup(@PathVariable UUID groupId) {
         return ResponseEntity.ok(scheduleService.getScheduleByGroup(groupId));
     }

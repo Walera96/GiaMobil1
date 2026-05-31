@@ -78,7 +78,7 @@ export const MeetingDetailPage: React.FC = () => {
     );
   };
 
-  const canViewComments = hasRole('CHAIRMAN') || (hasRole('GEK_MEMBER') && meeting?.status === 'CLOSED');
+  const canViewComments = hasRole('GEK_CHAIRMAN') || (hasRole('GEK_MEMBER') && meeting?.status === 'CLOSED');
   const isMeetingActive = meeting?.status === 'ACTIVE';
 
   const tabs = [
@@ -286,7 +286,7 @@ export const MeetingDetailPage: React.FC = () => {
                   </div>
                 )}
 
-                {hasRole('CHAIRMAN') && (
+                {hasRole('GEK_CHAIRMAN') && (
                   <div className="mt-3 border-t border-[var(--color-border)] pt-3">
                     <Button
                       size="sm"
@@ -325,7 +325,7 @@ export const MeetingDetailPage: React.FC = () => {
               <Download size={16} className="mr-1.5" />
               Итоговой протокол (DOCX)
             </Button>
-            {hasRole('CHAIRMAN') && (
+            {hasRole('GEK_CHAIRMAN') && (
               <Button onClick={() => id && protocolsApi.approve(id)}>
                 <CheckCircle2 size={16} className="mr-1.5" />
                 Утвердить протокол

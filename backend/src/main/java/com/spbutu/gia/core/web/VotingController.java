@@ -51,19 +51,19 @@ public class VotingController {
     }
 
     @GetMapping("/agenda-item/{agendaItemId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY', 'CHAIRMAN', 'GEK_MEMBER')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'GEK_SECRETARY', 'GEK_CHAIRMAN', 'GEK_MEMBER')")
     public ResponseEntity<List<VoteDto>> getVotesByAgendaItem(@PathVariable UUID agendaItemId) {
         return ResponseEntity.ok(votingService.getVotesByAgendaItem(agendaItemId));
     }
 
     @GetMapping("/agenda-item/{agendaItemId}/average")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY', 'CHAIRMAN', 'GEK_MEMBER')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'GEK_SECRETARY', 'GEK_CHAIRMAN', 'GEK_MEMBER')")
     public ResponseEntity<Integer> getAverageScore(@PathVariable UUID agendaItemId) {
         return ResponseEntity.ok(votingService.calculateAverageScore(agendaItemId));
     }
 
     @GetMapping("/agenda-item/{agendaItemId}/details")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY', 'CHAIRMAN', 'GEK_MEMBER')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'GEK_SECRETARY', 'GEK_CHAIRMAN', 'GEK_MEMBER')")
     public ResponseEntity<Map<String, Object>> getVoteDetails(@PathVariable UUID agendaItemId) {
         List<VoteDto> votes = votingService.getVotesByAgendaItem(agendaItemId);
         Double overallAverage = votingService.getStudentAverageScore(agendaItemId);
@@ -76,7 +76,7 @@ public class VotingController {
     }
 
     @PostMapping("/agenda-item/{agendaItemId}/finish")
-    @PreAuthorize("hasRole('CHAIRMAN')")
+    @PreAuthorize("hasRole('GEK_CHAIRMAN')")
     public ResponseEntity<Map<String, Object>> finishVoting(@PathVariable UUID agendaItemId) {
         return ResponseEntity.ok(votingService.finishVoting(agendaItemId));
     }

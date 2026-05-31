@@ -20,13 +20,13 @@ public class GekController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'METHODIST', 'SECRETARY')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'METHODIST', 'GEK_SECRETARY')")
     public ResponseEntity<List<Gek>> getAll() {
         return ResponseEntity.ok(gekService.getAll());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'METHODIST', 'SECRETARY')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'METHODIST', 'GEK_SECRETARY')")
     public ResponseEntity<Gek> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(gekService.getById(id));
     }

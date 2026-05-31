@@ -25,13 +25,13 @@ public class AdmissionController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'METHODIST', 'SECRETARY')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'METHODIST', 'GEK_SECRETARY')")
     public ResponseEntity<List<AdmissionDto>> getAllAdmissions() {
         return ResponseEntity.ok(admissionService.getAllAdmissions());
     }
 
     @GetMapping("/student/{studentId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'METHODIST', 'SECRETARY', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'METHODIST', 'GEK_SECRETARY', 'STUDENT')")
     public ResponseEntity<AdmissionDto> getAdmissionByStudent(@PathVariable UUID studentId) {
         return ResponseEntity.ok(admissionService.getAdmissionByStudentId(studentId));
     }

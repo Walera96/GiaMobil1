@@ -1,5 +1,7 @@
 import { api } from './client';
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8090/api';
+
 function extractFilename(contentDisposition: string | undefined): string | null {
   if (!contentDisposition) return null;
   const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
@@ -51,26 +53,34 @@ export interface VedomostCommitteeMember {
   degree?: string;
 }
 
+async function postBlob(path: string, dto: VedomostDto, defaultFilename: string): Promise<{ blob: Blob; filename: string }> {
+  const token = localStorage.getItem('accessToken');
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(dto),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => 'Unknown error');
+    console.error(`POST ${path} failed:`, res.status, text);
+    throw new Error(`HTTP ${res.status}: ${text}`);
+  }
+  const blob = await res.blob();
+  const filename = extractFilename(res.headers.get('content-disposition') || undefined) || defaultFilename;
+  return { blob, filename };
+}
+
 export const vedomostApi = {
   getTemplate: () => api.get<VedomostDto>('/vedomost/template').then((r) => r.data),
 
-  generatePdf: (dto: VedomostDto) =>
-    api.post<Blob>('/vedomost/pdf', dto, { responseType: 'blob' }).then((r) => ({
-      blob: r.data,
-      filename: extractFilename(r.headers['content-disposition']) || 'vedomost.pdf',
-    })),
+  generatePdf: (dto: VedomostDto) => postBlob('/vedomost/pdf', dto, 'vedomost.pdf'),
 
-  generateExcel: (dto: VedomostDto) =>
-    api.post<Blob>('/vedomost/excel', dto, { responseType: 'blob' }).then((r) => ({
-      blob: r.data,
-      filename: extractFilename(r.headers['content-disposition']) || 'vedomost.xls',
-    })),
+  generateExcel: (dto: VedomostDto) => postBlob('/vedomost/excel', dto, 'vedomost.xls'),
 
-  generateWord: (dto: VedomostDto) =>
-    api.post<Blob>('/vedomost/word', dto, { responseType: 'blob' }).then((r) => ({
-      blob: r.data,
-      filename: extractFilename(r.headers['content-disposition']) || 'vedomost.docx',
-    })),
+  generateWord: (dto: VedomostDto) => postBlob('/vedomost/word', dto, 'vedomost.docx'),
 };
 
 export function downloadBlob(blob: Blob, filename: string) {

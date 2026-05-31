@@ -19,7 +19,7 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/drafts")
-@PreAuthorize("hasAnyRole('SECRETARY', 'DEAN')")
+@PreAuthorize("hasAnyRole('GEK_SECRETARY', 'DEAN')")
 @SuppressWarnings("null")
 public class DraftDocumentController {
 

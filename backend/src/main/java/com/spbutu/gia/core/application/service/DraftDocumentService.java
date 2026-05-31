@@ -282,7 +282,7 @@ public class DraftDocumentService {
         extra.put("membersList", members);
         extra.put("membersString", String.join(", ", members));
         var secretaries = appUserRepository.findAll().stream()
-                .filter(u -> u.getRole() == com.spbutu.gia.auth.domain.enums.UserRole.SECRETARY)
+                .filter(u -> u.getRoles().contains(com.spbutu.gia.auth.domain.enums.UserRole.GEK_SECRETARY))
                 .toList();
         if (!secretaries.isEmpty()) {
             extra.put("secretaryName", secretaries.get(0).getFullName());

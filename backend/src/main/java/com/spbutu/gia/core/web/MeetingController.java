@@ -31,44 +31,44 @@ public class MeetingController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY', 'METHODIST', 'CHAIRMAN', 'GEK_MEMBER')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'GEK_SECRETARY', 'METHODIST', 'GEK_CHAIRMAN', 'GEK_MEMBER')")
     public ResponseEntity<List<MeetingDto>> getAllMeetings() {
         return ResponseEntity.ok(meetingService.getAllMeetings());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY', 'METHODIST', 'CHAIRMAN', 'GEK_MEMBER')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'GEK_SECRETARY', 'METHODIST', 'GEK_CHAIRMAN', 'GEK_MEMBER')")
     public ResponseEntity<MeetingDto> getMeeting(@PathVariable UUID id) {
         return ResponseEntity.ok(meetingService.getMeeting(id));
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('SECRETARY')")
+    @PreAuthorize("hasRole('GEK_SECRETARY')")
     public ResponseEntity<MeetingDto> createMeeting(@RequestBody @Valid CreateMeetingRequest request) {
         // NOTE: в продакшене здесь нужно передать ID текущего пользователя из SecurityContext
         return ResponseEntity.ok(meetingService.createMeeting(request, null));
     }
 
     @PostMapping("/{id}/activate")
-    @PreAuthorize("hasRole('SECRETARY')")
+    @PreAuthorize("hasRole('GEK_SECRETARY')")
     public ResponseEntity<MeetingDto> activateMeeting(@PathVariable UUID id) {
         return ResponseEntity.ok(meetingService.activateMeeting(id));
     }
 
     @PostMapping("/{id}/close")
-    @PreAuthorize("hasRole('SECRETARY')")
+    @PreAuthorize("hasRole('GEK_SECRETARY')")
     public ResponseEntity<MeetingDto> closeMeeting(@PathVariable UUID id) {
         return ResponseEntity.ok(meetingService.closeMeeting(id));
     }
 
     @GetMapping("/active")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY', 'CHAIRMAN', 'GEK_MEMBER')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'GEK_SECRETARY', 'GEK_CHAIRMAN', 'GEK_MEMBER')")
     public ResponseEntity<ActiveMeetingDto> getActiveMeeting() {
         return ResponseEntity.ok(meetingService.findActiveMeeting());
     }
 
     @GetMapping("/{id}/agenda-items")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY', 'METHODIST', 'CHAIRMAN', 'GEK_MEMBER')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'GEK_SECRETARY', 'METHODIST', 'GEK_CHAIRMAN', 'GEK_MEMBER')")
     public ResponseEntity<List<AgendaItemDto>> getAgendaItems(@PathVariable UUID id) {
         List<AgendaItem> items = agendaItemRepository.findAllByMeetingId(id);
         List<AgendaItemDto> dtos = items.stream().map(this::toAgendaItemDto).toList();

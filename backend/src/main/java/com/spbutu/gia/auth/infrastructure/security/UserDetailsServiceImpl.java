@@ -2,8 +2,6 @@ package com.spbutu.gia.auth.infrastructure.security;
 
 import com.spbutu.gia.auth.domain.entity.AppUser;
 import com.spbutu.gia.auth.domain.repository.AppUserRepository;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -11,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * Реализация UserDetailsService для загрузки пользователей из БД.
- * Преобразует сущность AppUser в стандартный UserDetails Spring Security.
+ * Возвращает CustomUserDetails с множественными ролями.
  */
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
@@ -28,10 +26,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException(
                         "Пользователь не найден: " + username));
 
-        return User.builder()
-                .username(appUser.getUsername())
-                .password(appUser.getPassword())
-                .authorities(new SimpleGrantedAuthority("ROLE_" + appUser.getRole().name()))
-                .build();
+        return new CustomUserDetails(appUser);
     }
 }

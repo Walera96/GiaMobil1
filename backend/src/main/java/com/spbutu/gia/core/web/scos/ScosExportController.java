@@ -24,7 +24,7 @@ public class ScosExportController {
     }
 
     @GetMapping("/preview")
-    @PreAuthorize("hasAnyRole('ADMIN', 'METHODIST', 'COMMISSION_MEMBER')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'METHODIST', 'COMMISSION_MEMBER')")
     public ResponseEntity<ScosExportPackageDto> previewExport(
             @RequestParam(required = false) String directionId,
             @RequestParam(required = false) String academicYear) {
@@ -35,7 +35,7 @@ public class ScosExportController {
     }
 
     @PostMapping("/xml")
-    @PreAuthorize("hasAnyRole('ADMIN', 'METHODIST')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'METHODIST')")
     public ResponseEntity<ByteArrayResource> exportXml(
             @RequestBody ScosExportRequestDto requestDto,
             @RequestParam(required = false) String createdBy) {
@@ -53,7 +53,7 @@ public class ScosExportController {
     }
 
     @PostMapping("/json")
-    @PreAuthorize("hasAnyRole('ADMIN', 'METHODIST')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'METHODIST')")
     public ResponseEntity<ByteArrayResource> exportJson(
             @RequestBody ScosExportRequestDto requestDto,
             @RequestParam(required = false) String createdBy) {
@@ -71,7 +71,7 @@ public class ScosExportController {
     }
 
     @PostMapping("/validate")
-    @PreAuthorize("hasAnyRole('ADMIN', 'METHODIST', 'COMMISSION_MEMBER')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'METHODIST', 'COMMISSION_MEMBER')")
     public ResponseEntity<List<String>> validateExport(
             @RequestBody ScosExportRequestDto requestDto) {
         ScosExportPackageDto dto = scosExportService.prepareExportData(
@@ -81,13 +81,13 @@ public class ScosExportController {
     }
 
     @GetMapping("/history")
-    @PreAuthorize("hasAnyRole('ADMIN', 'METHODIST')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'METHODIST')")
     public ResponseEntity<List<ScosExportLogDto>> getExportHistory() {
         return ResponseEntity.ok(scosExportService.getExportHistory());
     }
 
     @GetMapping("/config/{directionCode}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'METHODIST')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'METHODIST')")
     public ResponseEntity<ScosExportConfigDto> getConfig(@PathVariable String directionCode) {
         return scosExportService.getConfig(directionCode)
                 .map(ResponseEntity::ok)
@@ -95,7 +95,7 @@ public class ScosExportController {
     }
 
     @PostMapping("/config")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<ScosExportConfigDto> saveConfig(@RequestBody ScosExportConfigDto configDto) {
         return ResponseEntity.ok(scosExportService.saveConfig(configDto));
     }

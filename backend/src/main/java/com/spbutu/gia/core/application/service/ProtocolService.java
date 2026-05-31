@@ -448,7 +448,7 @@ public class ProtocolService {
         extra.put("membersString", String.join(", ", members));
         // Secretary not part of GEK membership; try to find any SECRETARY user
         var secretaries = appUserRepository.findAll().stream()
-                .filter(u -> u.getRole() == com.spbutu.gia.auth.domain.enums.UserRole.SECRETARY)
+                .filter(u -> u.getRoles().contains(com.spbutu.gia.auth.domain.enums.UserRole.GEK_SECRETARY))
                 .toList();
         if (!secretaries.isEmpty()) {
             extra.put("secretaryName", secretaries.get(0).getFullName());

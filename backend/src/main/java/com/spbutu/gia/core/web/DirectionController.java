@@ -20,13 +20,13 @@ public class DirectionController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'METHODIST', 'SECRETARY')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'METHODIST', 'GEK_SECRETARY')")
     public ResponseEntity<List<Direction>> getAll() {
         return ResponseEntity.ok(directionService.getAll());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'METHODIST', 'SECRETARY')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'METHODIST', 'GEK_SECRETARY')")
     public ResponseEntity<Direction> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(directionService.getById(id));
     }

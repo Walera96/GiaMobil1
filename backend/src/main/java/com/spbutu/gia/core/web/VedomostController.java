@@ -33,7 +33,7 @@ public class VedomostController {
     }
 
     @PostMapping(value = "/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
-    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY', 'CHAIRMAN', 'METHODIST')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'GEK_SECRETARY', 'GEK_CHAIRMAN', 'METHODIST')")
     public ResponseEntity<byte[]> generatePdf(@RequestBody VedomostDto vedomost) {
         vedomost.calculateStatistics();
         byte[] pdfBytes = pdfService.generatePdf(vedomost);
@@ -45,7 +45,7 @@ public class VedomostController {
     }
 
     @PostMapping(value = "/excel", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY', 'CHAIRMAN', 'METHODIST')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'GEK_SECRETARY', 'GEK_CHAIRMAN', 'METHODIST')")
     public ResponseEntity<byte[]> generateExcel(@RequestBody VedomostDto vedomost) {
         vedomost.calculateStatistics();
         byte[] excelBytes = excelService.generateExcel(vedomost);
@@ -63,7 +63,7 @@ public class VedomostController {
     }
 
     @PostMapping(value = "/word", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY', 'CHAIRMAN', 'METHODIST')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'GEK_SECRETARY', 'GEK_CHAIRMAN', 'METHODIST')")
     public ResponseEntity<byte[]> generateWord(@RequestBody VedomostDto vedomost) {
         vedomost.calculateStatistics();
         byte[] wordBytes = wordService.generateWord(vedomost);
@@ -75,7 +75,7 @@ public class VedomostController {
     }
 
     @GetMapping("/template")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY', 'CHAIRMAN', 'METHODIST')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'GEK_SECRETARY', 'GEK_CHAIRMAN', 'METHODIST')")
     public ResponseEntity<VedomostDto> getTemplate() {
         VedomostDto template = new VedomostDto();
         template.setDocumentNumber("319092");

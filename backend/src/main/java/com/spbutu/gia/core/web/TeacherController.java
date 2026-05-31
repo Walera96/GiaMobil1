@@ -22,31 +22,31 @@ public class TeacherController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','METHODIST','SECRETARY','CHAIRMAN','GEK_MEMBER')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN','METHODIST','GEK_SECRETARY','GEK_CHAIRMAN','GEK_MEMBER')")
     public ResponseEntity<List<TeacherDto>> getAll() {
         return ResponseEntity.ok(teacherService.findAll());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','METHODIST','SECRETARY','CHAIRMAN','GEK_MEMBER')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN','METHODIST','GEK_SECRETARY','GEK_CHAIRMAN','GEK_MEMBER')")
     public ResponseEntity<TeacherDto> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(teacherService.findById(id));
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN','METHODIST')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN','METHODIST')")
     public ResponseEntity<TeacherDto> create(@RequestBody CreateTeacherRequest request) {
         return ResponseEntity.ok(teacherService.create(request));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','METHODIST')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN','METHODIST')")
     public ResponseEntity<TeacherDto> update(@PathVariable UUID id, @RequestBody CreateTeacherRequest request) {
         return ResponseEntity.ok(teacherService.update(id, request));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','METHODIST')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN','METHODIST')")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         teacherService.delete(id);
         return ResponseEntity.noContent().build();

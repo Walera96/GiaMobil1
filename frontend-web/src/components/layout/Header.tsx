@@ -5,18 +5,21 @@ import { useUnreadCount } from '../../hooks/useNotifications';
 import { User, Bell } from 'lucide-react';
 
 export const Header: React.FC = () => {
-  const { user, role } = useAuth();
+  const { user, roles } = useAuth();
   const navigate = useNavigate();
   const { data: unreadData } = useUnreadCount();
   const unreadCount = unreadData?.count || 0;
 
   const roleLabels: Record<string, string> = {
-    ADMIN: 'Администратор',
+    SYSTEM_ADMIN: 'Системный администратор',
+    UNIVERSITY_ADMIN: 'Администратор вуза',
     METHODIST: 'Методист',
-    SECRETARY: 'Секретарь ГЭК',
-    CHAIRMAN: 'Председатель ГЭК',
+    GEK_SECRETARY: 'Секретарь ГЭК',
+    GEK_CHAIRMAN: 'Председатель ГЭК',
     GEK_MEMBER: 'Член ГЭК',
     STUDENT: 'Студент',
+    DEAN: 'Декан',
+    DEAN_SECRETARY: 'Секретарь деканата',
   };
 
   return (
@@ -36,7 +39,7 @@ export const Header: React.FC = () => {
         </button>
         <div className="text-right">
           <p className="text-sm font-medium text-[var(--color-text)]">{user?.fullName || user?.username}</p>
-          <p className="text-xs text-[var(--color-text-muted)]">{roleLabels[role || ''] || role}</p>
+          <p className="text-xs text-[var(--color-text-muted)]">{roleLabels[roles[0] || ''] || roles[0]}</p>
         </div>
         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-primary)] text-white">
           <User size={18} />

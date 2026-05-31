@@ -115,8 +115,9 @@ export const StatementEditPage: React.FC = () => {
     try {
       const { blob, filename } = await vedomostApi.generateWord(buildVedomostDto());
       downloadBlob(blob, filename);
-    } catch (e) {
-      alert('Ошибка генерации DOCX');
+    } catch (e: any) {
+      console.error(e);
+      alert('Ошибка генерации DOCX: ' + (e?.message || 'Неизвестная ошибка'));
     }
   };
 
@@ -124,8 +125,9 @@ export const StatementEditPage: React.FC = () => {
     try {
       const { blob, filename } = await vedomostApi.generateExcel(buildVedomostDto());
       downloadBlob(blob, filename);
-    } catch (e) {
-      alert('Ошибка генерации Excel');
+    } catch (e: any) {
+      console.error(e);
+      alert('Ошибка генерации Excel: ' + (e?.message || 'Неизвестная ошибка'));
     }
   };
 
@@ -133,8 +135,9 @@ export const StatementEditPage: React.FC = () => {
     try {
       const { blob, filename } = await vedomostApi.generatePdf(buildVedomostDto());
       downloadBlob(blob, filename);
-    } catch (e) {
-      alert('Ошибка генерации PDF');
+    } catch (e: any) {
+      console.error(e);
+      alert('Ошибка генерации PDF: ' + (e?.message || 'Неизвестная ошибка'));
     }
   };
 
@@ -151,8 +154,9 @@ export const StatementEditPage: React.FC = () => {
         const { blob, filename } = await vedomostApi.generateExcel(dto);
         setPreview({ blob, filename, mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       }
-    } catch (e) {
-      alert('Ошибка генерации предпросмотра');
+    } catch (e: any) {
+      console.error(e);
+      alert('Ошибка генерации предпросмотра: ' + (e?.message || 'Неизвестная ошибка'));
     }
   };
 

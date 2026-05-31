@@ -17,7 +17,8 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/users")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasRole('SYSTEM_ADMIN')")
+@SuppressWarnings("null")
 public class UserController {
 
     private final AppUserRepository userRepository;
@@ -52,7 +53,7 @@ public class UserController {
         user.setPassword(passwordEncoder.encode(req.password()));
         user.setFullName(req.fullName());
         user.setEmail(req.email());
-        user.setRole(req.role());
+        user.setRoles(new java.util.HashSet<>(java.util.Set.of(req.role())));
         AppUser saved = userRepository.save(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(toDto(saved));
     }
@@ -64,7 +65,7 @@ public class UserController {
         user.setUsername(req.username());
         user.setFullName(req.fullName());
         user.setEmail(req.email());
-        user.setRole(req.role());
+        user.setRoles(new java.util.HashSet<>(java.util.Set.of(req.role())));
         return toDto(userRepository.save(user));
     }
 
@@ -78,6 +79,7 @@ public class UserController {
     }
 
     private UserDto toDto(AppUser u) {
-        return new UserDto(u.getId(), u.getUsername(), u.getFullName(), u.getEmail(), u.getRole(), u.getCreatedAt(), u.getUpdatedAt());
+        String role = u.getRoles().isEmpty() ? null : u.getRoles().iterator().next().name();
+        return new UserDto(u.getId(), u.getUsername(), u.getFullName(), u.getEmail(), role, u.getCreatedAt(), u.getUpdatedAt());
     }
 }

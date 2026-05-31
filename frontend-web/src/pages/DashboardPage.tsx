@@ -10,7 +10,6 @@ import {
   ClipboardCheck,
   BarChart3,
   Vote,
-  QrCode,
   GraduationCap,
   ShieldCheck,
   ChevronRight,
@@ -26,11 +25,15 @@ interface DashCard {
 }
 
 export const DashboardPage: React.FC = () => {
-  const { role } = useAuth();
+  const { roles } = useAuth();
   const navigate = useNavigate();
 
   const roleCards: Record<string, DashCard[]> = {
-    ADMIN: [
+    SYSTEM_ADMIN: [
+      { title: 'Пользователи', icon: <Users size={22} />, iconBg: 'bg-blue-600', desc: 'Управление пользователями и ролями', action: 'Открыть', path: '/admin' },
+      { title: 'Аудит', icon: <ShieldCheck size={22} />, iconBg: 'bg-slate-700', desc: 'Журнал изменений и действий', action: 'Открыть', path: '/audit' },
+    ],
+    UNIVERSITY_ADMIN: [
       { title: 'Пользователи', icon: <Users size={22} />, iconBg: 'bg-blue-600', desc: 'Управление пользователями и ролями', action: 'Открыть', path: '/admin' },
       { title: 'Аудит', icon: <ShieldCheck size={22} />, iconBg: 'bg-slate-700', desc: 'Журнал изменений и действий', action: 'Открыть', path: '/audit' },
     ],
@@ -39,12 +42,12 @@ export const DashboardPage: React.FC = () => {
       { title: 'Ведомости', icon: <FileText size={22} />, iconBg: 'bg-blue-600', desc: 'Формирование и печать ведомостей', action: 'Открыть', path: '/protocols' },
       { title: 'Студенты', icon: <GraduationCap size={22} />, iconBg: 'bg-indigo-600', desc: 'Справочник студентов', action: 'Открыть', path: '/admissions' },
     ],
-    SECRETARY: [
+    GEK_SECRETARY: [
       { title: 'Заседания', icon: <CalendarDays size={22} />, iconBg: 'bg-blue-600', desc: 'Создание и управление заседаниями', action: 'Открыть', path: '/meetings' },
       { title: 'Создать заседание', icon: <CalendarDays size={22} />, iconBg: 'bg-emerald-600', desc: 'Новое заседание ГЭК', action: 'Создать', path: '/meetings' },
       { title: 'Архив', icon: <FileText size={22} />, iconBg: 'bg-slate-600', desc: 'Архив протоколов', action: 'Открыть', path: '/protocols' },
     ],
-    CHAIRMAN: [
+    GEK_CHAIRMAN: [
       { title: 'Заседания', icon: <CalendarDays size={22} />, iconBg: 'bg-blue-600', desc: 'Заседания на утверждение', action: 'Открыть', path: '/meetings' },
       { title: 'Статистика', icon: <BarChart3 size={22} />, iconBg: 'bg-purple-600', desc: 'Статистика оценок по группе', action: 'Открыть', path: '/protocols' },
     ],
@@ -59,7 +62,7 @@ export const DashboardPage: React.FC = () => {
     ],
   };
 
-  const cards = roleCards[role || ''] || [];
+  const cards = roles.flatMap((r) => roleCards[r] || []);
 
   return (
     <div className="space-y-6">
@@ -95,16 +98,6 @@ export const DashboardPage: React.FC = () => {
           </Card>
         ))}
       </div>
-
-      {role === 'GEK_MEMBER' && (
-        <Card className="flex flex-col items-center justify-center py-10">
-          <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-blue-50">
-            <QrCode size={48} className="text-[var(--color-primary)]" />
-          </div>
-          <p className="text-sm font-medium text-[var(--color-text)]">Отсканируйте QR-код для входа в мобильное приложение</p>
-          <p className="mt-1 text-xs text-[var(--color-text-muted)]">http://localhost:8081</p>
-        </Card>
-      )}
     </div>
   );
 };

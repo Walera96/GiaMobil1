@@ -25,38 +25,38 @@ public class StatementController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','METHODIST','SECRETARY','CHAIRMAN')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN','METHODIST','GEK_SECRETARY','GEK_CHAIRMAN')")
     public ResponseEntity<List<StatementDto>> getAll() {
         return ResponseEntity.ok(statementService.findAll());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','METHODIST','SECRETARY','CHAIRMAN')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN','METHODIST','GEK_SECRETARY','GEK_CHAIRMAN')")
     public ResponseEntity<StatementDto> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(statementService.findById(id));
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN','METHODIST','SECRETARY')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN','METHODIST','GEK_SECRETARY')")
     public ResponseEntity<StatementDto> create(@RequestBody CreateStatementRequest request,
                                                 @AuthenticationPrincipal AppUser currentUser) {
         return ResponseEntity.ok(statementService.create(request, currentUser));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','METHODIST','SECRETARY')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN','METHODIST','GEK_SECRETARY')")
     public ResponseEntity<StatementDto> update(@PathVariable UUID id, @RequestBody CreateStatementRequest request) {
         return ResponseEntity.ok(statementService.update(id, request));
     }
 
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('ADMIN','METHODIST','SECRETARY','CHAIRMAN')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN','METHODIST','GEK_SECRETARY','GEK_CHAIRMAN')")
     public ResponseEntity<StatementDto> changeStatus(@PathVariable UUID id, @RequestParam String status) {
         return ResponseEntity.ok(statementService.changeStatus(id, status));
     }
 
     @PutMapping("/{id}/records/{recordId}")
-    @PreAuthorize("hasAnyRole('ADMIN','METHODIST','SECRETARY')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN','METHODIST','GEK_SECRETARY')")
     public ResponseEntity<StatementDto> updateRecord(@PathVariable UUID id,
                                                       @PathVariable UUID recordId,
                                                       @RequestBody StatementRecordDto recordDto) {
@@ -64,7 +64,7 @@ public class StatementController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','METHODIST')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN','METHODIST')")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         statementService.delete(id);
         return ResponseEntity.noContent().build();

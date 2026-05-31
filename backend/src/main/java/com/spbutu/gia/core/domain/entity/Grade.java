@@ -31,7 +31,6 @@ public class Grade {
     @Column(name = "subject_name", nullable = false, length = 200)
     private String subjectName;
 
-    @Column(nullable = false)
     private Integer score;
 
     @Column(name = "current_control")

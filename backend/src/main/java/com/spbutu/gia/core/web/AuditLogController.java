@@ -26,7 +26,7 @@ public class AuditLogController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<List<AuditLogDto>> getAuditLogs(
             @RequestParam String table,
             @RequestParam UUID recordId) {

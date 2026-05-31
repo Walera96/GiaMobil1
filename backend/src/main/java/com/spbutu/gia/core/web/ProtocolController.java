@@ -32,19 +32,19 @@ public class ProtocolController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY', 'CHAIRMAN', 'GEK_MEMBER')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'GEK_SECRETARY', 'GEK_CHAIRMAN', 'GEK_MEMBER')")
     public ResponseEntity<ProtocolDto> getProtocol(@PathVariable UUID id) {
         return ResponseEntity.ok(protocolService.getProtocol(id));
     }
 
     @GetMapping("/meeting/{meetingId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY', 'CHAIRMAN', 'GEK_MEMBER')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'GEK_SECRETARY', 'GEK_CHAIRMAN', 'GEK_MEMBER')")
     public ResponseEntity<ProtocolDto> getProtocolByMeeting(@PathVariable UUID meetingId) {
         return ResponseEntity.ok(protocolService.getProtocolByMeetingId(meetingId));
     }
 
     @GetMapping("/search")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY', 'CHAIRMAN', 'GEK_MEMBER', 'METHODIST')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'GEK_SECRETARY', 'GEK_CHAIRMAN', 'GEK_MEMBER', 'METHODIST')")
     public ResponseEntity<List<ProtocolDto>> searchProtocols(
             @RequestParam(required = false) UUID studentId,
             @RequestParam(required = false) UUID groupId,
@@ -54,19 +54,19 @@ public class ProtocolController {
     }
 
     @GetMapping("/{id}/records")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY', 'CHAIRMAN', 'GEK_MEMBER')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'GEK_SECRETARY', 'GEK_CHAIRMAN', 'GEK_MEMBER')")
     public ResponseEntity<List<ProtocolRecordDto>> getProtocolRecords(@PathVariable UUID id) {
         return ResponseEntity.ok(protocolService.getProtocolRecords(id));
     }
 
     @PostMapping("/{id}/sign")
-    @PreAuthorize("hasRole('SECRETARY')")
+    @PreAuthorize("hasRole('GEK_SECRETARY')")
     public ResponseEntity<ProtocolDto> signProtocol(@PathVariable UUID id) {
         return ResponseEntity.ok(protocolService.signProtocol(id));
     }
 
     @PostMapping("/{id}/approve")
-    @PreAuthorize("hasRole('CHAIRMAN')")
+    @PreAuthorize("hasRole('GEK_CHAIRMAN')")
     public ResponseEntity<ProtocolDto> approveProtocol(@PathVariable UUID id) {
         UUID chairmanId = getCurrentUserId();
         return ResponseEntity.ok(protocolService.approveProtocol(id, chairmanId));
@@ -90,20 +90,20 @@ public class ProtocolController {
     }
 
     @PostMapping("/meeting/{meetingId}/generate-records")
-    @PreAuthorize("hasRole('SECRETARY')")
+    @PreAuthorize("hasRole('GEK_SECRETARY')")
     public ResponseEntity<Void> generateRecords(@PathVariable UUID meetingId) {
         protocolService.generateProtocolRecords(meetingId);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/meeting/{meetingId}/score-sheet")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY', 'CHAIRMAN', 'METHODIST')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'GEK_SECRETARY', 'GEK_CHAIRMAN', 'METHODIST')")
     public ResponseEntity<ScoreSheetDto> getScoreSheet(@PathVariable UUID meetingId) {
         return ResponseEntity.ok(protocolService.buildScoreSheet(meetingId));
     }
 
     @GetMapping("/record/{recordId}/docx/individual")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY', 'CHAIRMAN')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'GEK_SECRETARY', 'GEK_CHAIRMAN')")
     public ResponseEntity<byte[]> downloadIndividualDocx(@PathVariable UUID recordId) {
         byte[] docxBytes = protocolService.generateIndividualProtocolDocx(recordId);
         String studentName = protocolService.getStudentNameForRecord(recordId);
@@ -121,13 +121,13 @@ public class ProtocolController {
     }
 
     @GetMapping("/{id}/docx")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY', 'CHAIRMAN')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'GEK_SECRETARY', 'GEK_CHAIRMAN')")
     public ResponseEntity<byte[]> downloadDocx(@PathVariable UUID id) {
         return downloadFinalDocx(id);
     }
 
     @GetMapping("/{id}/docx/final")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY', 'CHAIRMAN')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'GEK_SECRETARY', 'GEK_CHAIRMAN')")
     public ResponseEntity<byte[]> downloadFinalDocx(@PathVariable UUID id) {
         byte[] docxBytes = protocolService.generateFinalProtocolDocx(id);
         return ResponseEntity.ok()
@@ -137,7 +137,7 @@ public class ProtocolController {
     }
 
     @GetMapping("/meeting/{meetingId}/docx/scoresheet")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY', 'CHAIRMAN', 'METHODIST')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'GEK_SECRETARY', 'GEK_CHAIRMAN', 'METHODIST')")
     public ResponseEntity<byte[]> downloadScoreSheetDocx(@PathVariable UUID meetingId) {
         byte[] docxBytes = protocolService.generateScoreSheetDocx(meetingId);
         var vedomost = protocolService.buildVedomostDto(meetingId);
@@ -157,7 +157,7 @@ public class ProtocolController {
     // ========== PDF endpoints ==========
 
     @GetMapping("/record/{recordId}/pdf/individual")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY', 'CHAIRMAN')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'GEK_SECRETARY', 'GEK_CHAIRMAN')")
     public ResponseEntity<byte[]> downloadIndividualPdf(@PathVariable UUID recordId) {
         byte[] pdfBytes = protocolService.generateIndividualProtocolPdf(recordId);
         return ResponseEntity.ok()
@@ -167,7 +167,7 @@ public class ProtocolController {
     }
 
     @GetMapping("/{id}/pdf/final")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY', 'CHAIRMAN')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'GEK_SECRETARY', 'GEK_CHAIRMAN')")
     public ResponseEntity<byte[]> downloadFinalPdf(@PathVariable UUID id) {
         byte[] pdfBytes = protocolService.generateFinalProtocolPdf(id);
         return ResponseEntity.ok()
@@ -177,7 +177,7 @@ public class ProtocolController {
     }
 
     @GetMapping("/meeting/{meetingId}/pdf/scoresheet")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY', 'CHAIRMAN', 'METHODIST')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'GEK_SECRETARY', 'GEK_CHAIRMAN', 'METHODIST')")
     public ResponseEntity<byte[]> downloadScoreSheetPdf(@PathVariable UUID meetingId) {
         byte[] pdfBytes = protocolService.generateScoreSheetPdf(meetingId);
         return ResponseEntity.ok()

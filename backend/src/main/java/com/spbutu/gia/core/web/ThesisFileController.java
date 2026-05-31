@@ -38,7 +38,7 @@ public class ThesisFileController {
     }
 
     @PostMapping("/{id}/thesis")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'GEK_SECRETARY', 'STUDENT')")
     public ResponseEntity<Void> uploadThesis(@PathVariable UUID id, @RequestParam("file") MultipartFile file) {
         Student student = studentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Студент не найден: " + id));
@@ -71,7 +71,7 @@ public class ThesisFileController {
     }
 
     @GetMapping("/{id}/thesis")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY', 'CHAIRMAN', 'GEK_MEMBER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'GEK_SECRETARY', 'GEK_CHAIRMAN', 'GEK_MEMBER', 'STUDENT')")
     public ResponseEntity<Resource> downloadThesis(@PathVariable UUID id) {
         Student student = studentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Студент не найден: " + id));
@@ -96,7 +96,7 @@ public class ThesisFileController {
     }
 
     @DeleteMapping("/{id}/thesis")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'GEK_SECRETARY', 'STUDENT')")
     public ResponseEntity<Void> deleteThesis(@PathVariable UUID id) {
         Student student = studentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Студент не найден: " + id));

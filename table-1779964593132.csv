@@ -1,0 +1,10 @@
+﻿Файл,Что делает
+`UserRole.java`,"12 ролей, методы `getPortal()`, `isAdminPortal()`, `isGekPortal()`"
+`AppUser.java`,"`Set<UserRole>` вместо одной роли, `departmentId`, `studyGroupId`, `primaryPortal`"
+`CustomUserDetails.java`,Spring Security authorities из массива ролей
+`SecurityConfig.java`,"`/portal/admin/**`, `/portal/gek/**`, `/portal/deanery/**` и т.д."
+`AuthController.java`,"Возвращает `roles`, `availablePortals`, `primaryPortal`"
+`authStore_full.ts`,"Zustand с `roles[]`, `availablePortals[]`, `primaryPortal`"
+`PortalSelector.tsx`,Экран выбора портала после логина (6 карточек)
+`App.tsx`,Роутер с PortalSelector + редирект по primaryPortal
+`README.md`,"Полный план миграции (10 шагов), SQL-скрипт, риски"

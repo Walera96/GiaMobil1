@@ -23,7 +23,7 @@ public class StudentController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'METHODIST', 'SECRETARY')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'METHODIST', 'GEK_SECRETARY')")
     public ResponseEntity<List<Student>> getAllStudents(@RequestParam(required = false) UUID groupId) {
         if (groupId != null) {
             return ResponseEntity.ok(studentService.getStudentsByGroupId(groupId));
@@ -32,7 +32,7 @@ public class StudentController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'METHODIST', 'SECRETARY', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'METHODIST', 'GEK_SECRETARY', 'STUDENT')")
     public ResponseEntity<Student> getStudent(@PathVariable UUID id) {
         return ResponseEntity.ok(studentService.getStudent(id));
     }

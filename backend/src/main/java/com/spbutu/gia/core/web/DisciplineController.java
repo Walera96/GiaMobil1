@@ -22,31 +22,31 @@ public class DisciplineController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','METHODIST','SECRETARY','CHAIRMAN','GEK_MEMBER','STUDENT')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN','METHODIST','GEK_SECRETARY','GEK_CHAIRMAN','GEK_MEMBER','STUDENT')")
     public ResponseEntity<List<DisciplineDto>> getAll() {
         return ResponseEntity.ok(disciplineService.findAll());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','METHODIST','SECRETARY','CHAIRMAN','GEK_MEMBER','STUDENT')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN','METHODIST','GEK_SECRETARY','GEK_CHAIRMAN','GEK_MEMBER','STUDENT')")
     public ResponseEntity<DisciplineDto> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(disciplineService.findById(id));
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN','METHODIST')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN','METHODIST')")
     public ResponseEntity<DisciplineDto> create(@RequestBody CreateDisciplineRequest request) {
         return ResponseEntity.ok(disciplineService.create(request));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','METHODIST')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN','METHODIST')")
     public ResponseEntity<DisciplineDto> update(@PathVariable UUID id, @RequestBody CreateDisciplineRequest request) {
         return ResponseEntity.ok(disciplineService.update(id, request));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','METHODIST')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN','METHODIST')")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         disciplineService.delete(id);
         return ResponseEntity.noContent().build();

@@ -55,7 +55,7 @@ export const MeetingsPage: React.FC = () => {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-[var(--color-text)]">Заседания ГЭК</h2>
-        {hasRole('SECRETARY', 'METHODIST') && (
+        {hasRole('GEK_SECRETARY', 'METHODIST') && (
           <Button onClick={() => setIsModalOpen(true)}>Создать заседание</Button>
         )}
       </div>
@@ -88,10 +88,10 @@ export const MeetingsPage: React.FC = () => {
                       <Button size="sm" variant="secondary" onClick={() => navigate(`/meetings/${m.id}`)}>
                         Открыть
                       </Button>
-                      {hasRole('SECRETARY') && m.status === 'PLANNED' && (
+                      {hasRole('GEK_SECRETARY') && m.status === 'PLANNED' && (
                         <Button size="sm" onClick={() => activate.mutate(m.id)}>Активировать</Button>
                       )}
-                      {hasRole('SECRETARY') && m.status === 'ACTIVE' && (
+                      {hasRole('GEK_SECRETARY') && m.status === 'ACTIVE' && (
                         <Button size="sm" variant="danger" onClick={() => close.mutate(m.id)}>Закрыть</Button>
                       )}
                     </div>

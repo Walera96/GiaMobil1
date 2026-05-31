@@ -20,13 +20,13 @@ public class StudyGroupController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'METHODIST', 'SECRETARY')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'METHODIST', 'GEK_SECRETARY')")
     public ResponseEntity<List<StudyGroup>> getAll() {
         return ResponseEntity.ok(studyGroupService.getAll());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'METHODIST', 'SECRETARY')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN', 'METHODIST', 'GEK_SECRETARY')")
     public ResponseEntity<StudyGroup> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(studyGroupService.getById(id));
     }

@@ -1,11 +1,11 @@
 import { useAuthStore } from '../store/authStore';
 
 export function useAuth() {
-  const { isAuthenticated, role, user, logout } = useAuthStore();
+  const { isAuthenticated, roles, user, logout } = useAuthStore();
 
-  const hasRole = (...roles: string[]) => {
-    return role ? roles.includes(role) : false;
+  const hasRole = (...checkRoles: string[]) => {
+    return roles.some((r) => checkRoles.includes(r));
   };
 
-  return { isAuthenticated, role, user, hasRole, logout };
+  return { isAuthenticated, roles, user, hasRole, logout };
 }

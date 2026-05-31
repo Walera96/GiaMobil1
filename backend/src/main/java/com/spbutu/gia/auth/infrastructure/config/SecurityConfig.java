@@ -22,9 +22,21 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
 /**
- * Конфигурация Spring Security.
- * Stateless-сессии, JWT-аутентификация, CORS, BCrypt (12 раундов).
- * Роли проверяются через @PreAuthorize на уровне контроллеров.
+ * Конфигурация Spring Security для модульной архитектуры с порталами.
+ *
+ * Структура URL:
+ * - /auth/** — публичные (логин, refresh)
+ * - /actuator/** — публичные (health)
+ * - /portal/admin/** — SYSTEM_ADMIN, UNIVERSITY_ADMIN
+ * - /portal/deanery/** — DEAN, DEAN_SECRETARY
+ * - /portal/department/** — DEPARTMENT_HEAD, DEPARTMENT_SECRETARY, SUPERVISOR
+ * - /portal/gek/** — GEK_SECRETARY, GEK_CHAIRMAN, GEK_MEMBER
+ * - /portal/methodist/** — METHODIST
+ * - /portal/student/** — STUDENT
+ * - /api/** — общие API (требуют аутентификации)
+ *
+ * Переходная фаза: старые пути (/meetings, /protocols и т.д.) пока работают
+ * с текущими ролями, но будут перенесены на /portal/gek/**.
  */
 @Configuration
 @EnableWebSecurity
@@ -37,67 +49,100 @@ public class SecurityConfig {
         this.jwtFilter = jwtFilter;
     }
 
-    /**
-     * Цепочка фильтров безопасности.
-     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        // CORS preflight
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        // Публичные эндпоинты (без аутентификации)
-                        .requestMatchers("/auth/login").permitAll()
-                        .requestMatchers("/auth/refresh").permitAll()
-                        .requestMatchers("/actuator/health").permitAll()
-                        // Testing endpoints — временно доступны без авторизации для тестирования
-                        .requestMatchers("/testing/**").permitAll()
-                        // Protocols endpoints — временно доступны без авторизации
-                        .requestMatchers("/protocols/**").permitAll()
-                        // Черновики документов — только деканат и секретарь
-                        .requestMatchers("/drafts/**").hasAnyRole("SECRETARY", "DEAN")
-                        // Все остальные запросы требуют аутентификации
-                        .anyRequest().authenticated()
-                )
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+            .csrf(AbstractHttpConfigurer::disable)
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                // === ПУБЛИЧНЫЕ ===
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/auth/**").permitAll()
+                .requestMatchers("/actuator/health").permitAll()
+
+                // === ПОРТАЛ: АДМИНИСТРАЦИЯ ===
+                .requestMatchers("/portal/admin/**")
+                    .hasAnyRole("SYSTEM_ADMIN", "UNIVERSITY_ADMIN")
+
+                // === ПОРТАЛ: ДЕКАНАТ ===
+                .requestMatchers("/portal/deanery/**")
+                    .hasAnyRole("DEAN", "DEAN_SECRETARY", "SYSTEM_ADMIN", "UNIVERSITY_ADMIN")
+                .requestMatchers("/portal/deanery/orders/approve", "/portal/deanery/orders/sign")
+                    .hasAnyRole("DEAN", "SYSTEM_ADMIN")
+
+                // === ПОРТАЛ: КАФЕДРА ===
+                .requestMatchers("/portal/department/**")
+                    .hasAnyRole("DEPARTMENT_HEAD", "DEPARTMENT_SECRETARY",
+                        "SUPERVISOR", "SYSTEM_ADMIN", "UNIVERSITY_ADMIN")
+
+                // === ПОРТАЛ: ГЭК ===
+                .requestMatchers("/portal/gek/meetings/**")
+                    .hasAnyRole("GEK_SECRETARY", "GEK_CHAIRMAN", "SYSTEM_ADMIN", "UNIVERSITY_ADMIN")
+                .requestMatchers("/portal/gek/voting/**")
+                    .hasAnyRole("GEK_MEMBER", "GEK_SECRETARY", "GEK_CHAIRMAN")
+                .requestMatchers("/portal/gek/protocols/**")
+                    .hasAnyRole("GEK_SECRETARY", "GEK_CHAIRMAN", "SYSTEM_ADMIN", "UNIVERSITY_ADMIN")
+                .requestMatchers("/portal/gek/vedomost/**")
+                    .hasAnyRole("GEK_SECRETARY", "SYSTEM_ADMIN", "UNIVERSITY_ADMIN")
+                .requestMatchers("/portal/gek/monitor/**")
+                    .hasAnyRole("GEK_SECRETARY", "GEK_CHAIRMAN", "SYSTEM_ADMIN", "UNIVERSITY_ADMIN")
+
+                // === ПОРТАЛ: МЕТОДИСТ ===
+                .requestMatchers("/portal/methodist/**")
+                    .hasAnyRole("METHODIST", "SYSTEM_ADMIN", "UNIVERSITY_ADMIN")
+
+                // === ПОРТАЛ: СТУДЕНТ ===
+                .requestMatchers("/portal/student/**")
+                    .hasAnyRole("STUDENT", "SYSTEM_ADMIN", "UNIVERSITY_ADMIN")
+
+                // === ЗАДАНИЯ: ПРЕПОДАВАТЕЛЬ ===
+                .requestMatchers("/api/teacher/**")
+                    .hasAnyRole("SUPERVISOR", "DEPARTMENT_HEAD", "SYSTEM_ADMIN", "UNIVERSITY_ADMIN")
+
+                // === ЗАДАНИЯ: СТУДЕНТ ===
+                .requestMatchers("/api/student/**")
+                    .hasAnyRole("STUDENT", "SYSTEM_ADMIN", "UNIVERSITY_ADMIN")
+
+                // === СТАРЫЕ ПУТИ (переходная совместимость) ===
+                .requestMatchers("/protocols/**")
+                    .hasAnyRole("GEK_SECRETARY", "GEK_CHAIRMAN", "SYSTEM_ADMIN", "UNIVERSITY_ADMIN")
+                .requestMatchers("/testing/**").hasAnyRole("SYSTEM_ADMIN", "UNIVERSITY_ADMIN")
+                .requestMatchers("/drafts/**").hasAnyRole("GEK_SECRETARY", "DEAN", "SYSTEM_ADMIN", "UNIVERSITY_ADMIN")
+
+                // === ВСЁ ОСТАЛЬНОЕ ===
+                .anyRequest().authenticated()
+            )
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    /**
-     * Менеджер аутентификации.
-     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
-    /**
-     * Кодировщик паролей BCrypt с 12 раундами.
-     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(12);
     }
 
-    /**
-     * Настройка CORS для взаимодействия с React-фронтендом.
-     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(
-                "http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:5176", "http://localhost:5177",
-                "http://localhost:3000", "http://localhost:8081", "http://localhost:8082",
-                "http://172.27.48.1:3000", "http://172.27.48.1:5173", "http://172.27.48.1:5174",
-                "http://172.27.48.1:5175", "http://172.27.48.1:5176", "http://172.27.48.1:5177", "http://172.27.48.1:8081", "http://172.27.48.1:8082"
+            "http://localhost:5173", "http://localhost:5174", "http://localhost:5175",
+            "http://localhost:3000", "http://localhost:8081", "http://localhost:8082",
+            "http://172.27.48.1:3000", "http://172.27.48.1:5173",
+            // Порталы (будущие)
+            "http://localhost:5178", "http://localhost:5179",
+            "http://localhost:5180", "http://localhost:5181",
+            "http://localhost:5182", "http://localhost:5183"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Portal"));
         configuration.setExposedHeaders(List.of("Content-Disposition"));
         configuration.setAllowCredentials(true);
 

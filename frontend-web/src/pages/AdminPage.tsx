@@ -8,13 +8,22 @@ import { useUsers, useCreateUser, useUpdateUser, useDeleteUser } from '../hooks/
 import { Pencil, Trash2, Plus } from 'lucide-react';
 
 const ROLE_LABELS: Record<string, string> = {
-  ADMIN: 'Администратор',
+  SYSTEM_ADMIN: 'Системный администратор',
+  UNIVERSITY_ADMIN: 'Администратор вуза',
+  DEAN: 'Декан',
+  DEAN_SECRETARY: 'Секретарь деканата',
+  DEPARTMENT_HEAD: 'Зав. кафедрой',
+  DEPARTMENT_SECRETARY: 'Секретарь кафедры',
+  SUPERVISOR: 'Руководитель ВКР',
+  GEK_SECRETARY: 'Секретарь ГЭК',
+  GEK_CHAIRMAN: 'Председатель ГЭК',
+  GEK_MEMBER: 'Член ГЭК',
   METHODIST: 'Методист',
+  STUDENT: 'Студент',
+  // Legacy
+  ADMIN: 'Администратор',
   SECRETARY: 'Секретарь',
   CHAIRMAN: 'Председатель',
-  GEK_MEMBER: 'Член ГЭК',
-  STUDENT: 'Студент',
-  DEAN: 'Деканат',
 };
 
 const demoAudit = [

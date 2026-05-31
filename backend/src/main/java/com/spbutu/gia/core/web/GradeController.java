@@ -22,43 +22,43 @@ public class GradeController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','METHODIST','SECRETARY','CHAIRMAN')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN','METHODIST','GEK_SECRETARY','GEK_CHAIRMAN')")
     public ResponseEntity<List<GradeDto>> getAll() {
         return ResponseEntity.ok(gradeService.findAll());
     }
 
     @GetMapping("/student/{studentId}")
-    @PreAuthorize("hasAnyRole('ADMIN','METHODIST','SECRETARY','CHAIRMAN','STUDENT')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN','METHODIST','GEK_SECRETARY','GEK_CHAIRMAN','STUDENT')")
     public ResponseEntity<List<GradeDto>> getByStudent(@PathVariable UUID studentId) {
         return ResponseEntity.ok(gradeService.findAllByStudent(studentId));
     }
 
     @GetMapping("/discipline/{disciplineId}")
-    @PreAuthorize("hasAnyRole('ADMIN','METHODIST','SECRETARY','CHAIRMAN')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN','METHODIST','GEK_SECRETARY','GEK_CHAIRMAN')")
     public ResponseEntity<List<GradeDto>> getByDiscipline(@PathVariable UUID disciplineId) {
         return ResponseEntity.ok(gradeService.findAllByDiscipline(disciplineId));
     }
 
     @GetMapping("/group/{groupId}")
-    @PreAuthorize("hasAnyRole('ADMIN','METHODIST','SECRETARY','CHAIRMAN')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN','METHODIST','GEK_SECRETARY','GEK_CHAIRMAN')")
     public ResponseEntity<List<GradeDto>> getByGroup(@PathVariable UUID groupId) {
         return ResponseEntity.ok(gradeService.findAllByGroup(groupId));
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN','METHODIST','SECRETARY')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN','METHODIST','GEK_SECRETARY')")
     public ResponseEntity<GradeDto> create(@RequestBody CreateGradeRequest request) {
         return ResponseEntity.ok(gradeService.create(request));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','METHODIST','SECRETARY')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN','METHODIST','GEK_SECRETARY')")
     public ResponseEntity<GradeDto> update(@PathVariable UUID id, @RequestBody CreateGradeRequest request) {
         return ResponseEntity.ok(gradeService.update(id, request));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','METHODIST')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN','METHODIST')")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         gradeService.delete(id);
         return ResponseEntity.noContent().build();

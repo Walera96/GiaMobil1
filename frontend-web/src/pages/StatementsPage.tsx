@@ -35,7 +35,7 @@ export const StatementsPage: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-[var(--color-text)]">Ведомости</h1>
-        <Button onClick={() => navigate('/statements/new')} className="flex items-center gap-2">
+        <Button onClick={() => navigate('/statements/create')} className="flex items-center gap-2">
           <Plus size={18} /> Создать ведомость
         </Button>
       </div>

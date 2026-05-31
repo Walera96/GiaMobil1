@@ -25,27 +25,29 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { label: 'Главная', path: '/', icon: <LayoutDashboard size={18} />, roles: ['ADMIN', 'METHODIST', 'SECRETARY', 'CHAIRMAN', 'GEK_MEMBER', 'STUDENT'] },
-  { label: 'Группы', path: '/groups', icon: <Users size={18} />, roles: ['ADMIN', 'METHODIST', 'SECRETARY'] },
-  { label: 'Дисциплины', path: '/disciplines', icon: <BookOpen size={18} />, roles: ['ADMIN', 'METHODIST', 'SECRETARY'] },
-  { label: 'Журнал', path: '/gradebook', icon: <GraduationCap size={18} />, roles: ['ADMIN', 'METHODIST', 'SECRETARY'] },
-  { label: 'Ведомости', path: '/statements', icon: <ListChecks size={18} />, roles: ['ADMIN', 'METHODIST', 'SECRETARY'] },
-  { label: 'Преподаватели', path: '/teachers', icon: <UserCircle size={18} />, roles: ['ADMIN', 'METHODIST', 'SECRETARY'] },
-  { label: 'Отчёты', path: '/reports', icon: <BarChart3 size={18} />, roles: ['ADMIN', 'METHODIST', 'SECRETARY', 'CHAIRMAN'] },
-  { label: 'ГАК', path: '/gac', icon: <Vote size={18} />, roles: ['ADMIN', 'SECRETARY', 'CHAIRMAN', 'GEK_MEMBER'] },
-  { label: 'Заседания', path: '/meetings', icon: <CalendarDays size={18} />, roles: ['ADMIN', 'SECRETARY', 'CHAIRMAN', 'GEK_MEMBER'] },
-  { label: 'Протоколы', path: '/protocols', icon: <FileText size={18} />, roles: ['ADMIN', 'SECRETARY', 'CHAIRMAN'] },
-  { label: 'Допуски', path: '/admissions', icon: <ClipboardCheck size={18} />, roles: ['ADMIN', 'METHODIST'] },
-  { label: 'Табло', path: '/voting-monitor', icon: <Monitor size={18} />, roles: ['ADMIN', 'SECRETARY', 'CHAIRMAN'] },
-  { label: 'Пользователи', path: '/admin', icon: <UserCircle size={18} />, roles: ['ADMIN'] },
+  { label: 'Главная', path: '/', icon: <LayoutDashboard size={18} />, roles: ['SYSTEM_ADMIN', 'UNIVERSITY_ADMIN', 'METHODIST', 'GEK_SECRETARY', 'GEK_CHAIRMAN', 'GEK_MEMBER', 'STUDENT', 'DEAN', 'DEAN_SECRETARY'] },
+  { label: 'Группы', path: '/groups', icon: <Users size={18} />, roles: ['SYSTEM_ADMIN', 'UNIVERSITY_ADMIN', 'METHODIST', 'GEK_SECRETARY'] },
+  { label: 'Дисциплины', path: '/disciplines', icon: <BookOpen size={18} />, roles: ['SYSTEM_ADMIN', 'UNIVERSITY_ADMIN', 'METHODIST', 'GEK_SECRETARY'] },
+  { label: 'Журнал', path: '/gradebook', icon: <GraduationCap size={18} />, roles: ['SYSTEM_ADMIN', 'UNIVERSITY_ADMIN', 'METHODIST', 'GEK_SECRETARY'] },
+  { label: 'Ведомости', path: '/statements', icon: <ListChecks size={18} />, roles: ['SYSTEM_ADMIN', 'UNIVERSITY_ADMIN', 'METHODIST', 'GEK_SECRETARY'] },
+  { label: 'Преподаватели', path: '/teachers', icon: <UserCircle size={18} />, roles: ['SYSTEM_ADMIN', 'UNIVERSITY_ADMIN', 'METHODIST', 'GEK_SECRETARY'] },
+  { label: 'Отчёты', path: '/reports', icon: <BarChart3 size={18} />, roles: ['SYSTEM_ADMIN', 'UNIVERSITY_ADMIN', 'METHODIST', 'GEK_SECRETARY', 'GEK_CHAIRMAN'] },
+  { label: 'ГАК', path: '/gac', icon: <Vote size={18} />, roles: ['SYSTEM_ADMIN', 'UNIVERSITY_ADMIN', 'GEK_SECRETARY', 'GEK_CHAIRMAN', 'GEK_MEMBER'] },
+  { label: 'Заседания', path: '/meetings', icon: <CalendarDays size={18} />, roles: ['SYSTEM_ADMIN', 'UNIVERSITY_ADMIN', 'GEK_SECRETARY', 'GEK_CHAIRMAN', 'GEK_MEMBER'] },
+  { label: 'Протоколы', path: '/protocols', icon: <FileText size={18} />, roles: ['SYSTEM_ADMIN', 'UNIVERSITY_ADMIN', 'GEK_SECRETARY', 'GEK_CHAIRMAN'] },
+  { label: 'Допуски', path: '/admissions', icon: <ClipboardCheck size={18} />, roles: ['SYSTEM_ADMIN', 'UNIVERSITY_ADMIN', 'METHODIST'] },
+  { label: 'Табло', path: '/voting-monitor', icon: <Monitor size={18} />, roles: ['SYSTEM_ADMIN', 'UNIVERSITY_ADMIN', 'GEK_SECRETARY', 'GEK_CHAIRMAN'] },
+  { label: 'Пользователи', path: '/admin', icon: <UserCircle size={18} />, roles: ['SYSTEM_ADMIN', 'UNIVERSITY_ADMIN'] },
 ];
 
 export const Sidebar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { role, logout } = useAuth();
+  const { roles, logout } = useAuth();
 
-  const filtered = navItems.filter((item) => item.roles.includes(role || ''));
+  const filtered = navItems.filter((item) =>
+    item.roles.some((r) => (roles as string[]).includes(r))
+  );
 
   return (
     <aside className="flex h-full w-64 flex-col border-r border-[var(--color-border)] bg-white">
