@@ -103,6 +103,7 @@ com\spbutu\gia\core\application\dto\CreateTeacherRequest.class
 com\spbutu\gia\core\web\DisciplineController.class
 com\spbutu\gia\core\application\service\MeetingService.class
 com\spbutu\gia\core\domain\repository\testing\QuestionRepository.class
+com\spbutu\gia\assignments\domain\vo\ScoringConfig$ScoringCriteria.class
 com\spbutu\gia\core\application\dto\student\UpdateExtendedProfileRequest.class
 com\spbutu\gia\core\application\dto\deanery\ContingentMovementDto.class
 com\spbutu\gia\core\domain\entity\scos\ScosExportLog.class
@@ -159,7 +160,6 @@ com\spbutu\gia\core\application\dto\scos\ScosExportPackageDto.class
 com\spbutu\gia\core\application\dto\scos\ScosStudentResultDto.class
 com\spbutu\gia\core\domain\enums\ScoreValueConverter.class
 com\spbutu\gia\core\application\dto\deanery\DeaneryOrderDto.class
-com\spbutu\gia\assignments\domain\vo\ScoringConfig$ScoringCriterion.class
 com\spbutu\gia\core\domain\entity\Teacher.class
 com\spbutu\gia\core\application\dto\VedomostDto$StudentRecord.class
 com\spbutu\gia\core\application\dto\StatementRecordDto.class
@@ -168,6 +168,7 @@ com\spbutu\gia\assignments\web\TeacherAssignmentController.class
 com\spbutu\gia\core\application\service\VotingService.class
 com\spbutu\gia\core\web\AdmissionController.class
 com\spbutu\gia\core\domain\entity\Grade.class
+com\spbutu\gia\assignments\domain\vo\ScoringConfig$GradeThresholds.class
 com\spbutu\gia\core\web\SseController.class
 com\spbutu\gia\core\application\service\testing\TestService.class
 com\spbutu\gia\core\domain\repository\StudyGroupRepository.class

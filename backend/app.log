@@ -38385,3 +38385,269 @@ Hibernate:
             on g1_0.id=gm1_0.gek_id 
     where
         g1_0.id=?
+2026-05-29T15:09:18.954+03:00 DEBUG 17512 --- [gia] [nio-8090-exec-3] o.s.security.web.FilterChainProxy        : Securing OPTIONS /notifications/unread-count
+2026-05-29T15:09:18.954+03:00 DEBUG 17512 --- [gia] [nio-8090-exec-9] o.s.security.web.FilterChainProxy        : Securing OPTIONS /meetings/a1111111-1111-1111-1111-111111111111
+2026-05-29T15:09:18.954+03:00 DEBUG 17512 --- [gia] [nio-8090-exec-8] o.s.security.web.FilterChainProxy        : Securing OPTIONS /meetings/a1111111-1111-1111-1111-111111111111/agenda-items
+2026-05-29T15:09:18.954+03:00 DEBUG 17512 --- [gia] [io-8090-exec-10] o.s.security.web.FilterChainProxy        : Securing GET /notifications/unread-count
+2026-05-29T15:09:18.954+03:00 DEBUG 17512 --- [gia] [nio-8090-exec-6] o.s.security.web.FilterChainProxy        : Securing GET /meetings/a1111111-1111-1111-1111-111111111111
+2026-05-29T15:09:18.954+03:00 DEBUG 17512 --- [gia] [nio-8090-exec-2] o.s.security.web.FilterChainProxy        : Securing GET /meetings/a1111111-1111-1111-1111-111111111111/agenda-items
+Hibernate: 
+    select
+        au1_0.id,
+        au1_0.created_at,
+        au1_0.department_id,
+        au1_0.email,
+        au1_0.full_name,
+        au1_0.password,
+        au1_0.primary_portal,
+        au1_0.study_group_id,
+        au1_0.updated_at,
+        au1_0.username 
+    from
+        app_user au1_0 
+    where
+        au1_0.username=?
+Hibernate: 
+    select
+        au1_0.id,
+        au1_0.created_at,
+        au1_0.department_id,
+        au1_0.email,
+        au1_0.full_name,
+        au1_0.password,
+        au1_0.primary_portal,
+        au1_0.study_group_id,
+        au1_0.updated_at,
+        au1_0.username 
+    from
+        app_user au1_0 
+    where
+        au1_0.username=?
+Hibernate: 
+    select
+        au1_0.id,
+        au1_0.created_at,
+        au1_0.department_id,
+        au1_0.email,
+        au1_0.full_name,
+        au1_0.password,
+        au1_0.primary_portal,
+        au1_0.study_group_id,
+        au1_0.updated_at,
+        au1_0.username 
+    from
+        app_user au1_0 
+    where
+        au1_0.username=?
+Hibernate: 
+    select
+        r1_0.user_id,
+        r1_0.role 
+    from
+        user_roles r1_0 
+    where
+        r1_0.user_id=?
+Hibernate: 
+    select
+        r1_0.user_id,
+        r1_0.role 
+    from
+        user_roles r1_0 
+    where
+        r1_0.user_id=?
+Hibernate: 
+    select
+        r1_0.user_id,
+        r1_0.role 
+    from
+        user_roles r1_0 
+    where
+        r1_0.user_id=?
+2026-05-29T15:09:18.964+03:00 DEBUG 17512 --- [gia] [io-8090-exec-10] o.s.security.web.FilterChainProxy        : Secured GET /notifications/unread-count
+2026-05-29T15:09:18.964+03:00 DEBUG 17512 --- [gia] [nio-8090-exec-6] o.s.security.web.FilterChainProxy        : Secured GET /meetings/a1111111-1111-1111-1111-111111111111
+2026-05-29T15:09:18.964+03:00 DEBUG 17512 --- [gia] [nio-8090-exec-2] o.s.security.web.FilterChainProxy        : Secured GET /meetings/a1111111-1111-1111-1111-111111111111/agenda-items
+2026-05-29T15:09:18.964+03:00 DEBUG 17512 --- [gia] [nio-8090-exec-6] horizationManagerBeforeMethodInterceptor : Authorizing method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.spbutu.gia.core.web.MeetingController.getMeeting(java.util.UUID); target is of class [com.spbutu.gia.core.web.MeetingController]
+2026-05-29T15:09:18.964+03:00 DEBUG 17512 --- [gia] [io-8090-exec-10] horizationManagerBeforeMethodInterceptor : Authorizing method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.spbutu.gia.core.web.NotificationController.getUnreadCount(); target is of class [com.spbutu.gia.core.web.NotificationController]
+2026-05-29T15:09:18.964+03:00 DEBUG 17512 --- [gia] [nio-8090-exec-2] horizationManagerBeforeMethodInterceptor : Authorizing method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.spbutu.gia.core.web.MeetingController.getAgendaItems(java.util.UUID); target is of class [com.spbutu.gia.core.web.MeetingController]
+2026-05-29T15:09:18.964+03:00 DEBUG 17512 --- [gia] [nio-8090-exec-6] horizationManagerBeforeMethodInterceptor : Authorized method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.spbutu.gia.core.web.MeetingController.getMeeting(java.util.UUID); target is of class [com.spbutu.gia.core.web.MeetingController]
+2026-05-29T15:09:18.964+03:00 DEBUG 17512 --- [gia] [io-8090-exec-10] horizationManagerBeforeMethodInterceptor : Authorized method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.spbutu.gia.core.web.NotificationController.getUnreadCount(); target is of class [com.spbutu.gia.core.web.NotificationController]
+2026-05-29T15:09:18.964+03:00 DEBUG 17512 --- [gia] [nio-8090-exec-2] horizationManagerBeforeMethodInterceptor : Authorized method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.spbutu.gia.core.web.MeetingController.getAgendaItems(java.util.UUID); target is of class [com.spbutu.gia.core.web.MeetingController]
+Hibernate: 
+    select
+        m1_0.id,
+        m1_0.created_at,
+        m1_0.created_by,
+        m1_0.end_time,
+        m1_0.gek_id,
+        m1_0.location,
+        m1_0.meeting_date,
+        m1_0.quorum_required,
+        m1_0.start_time,
+        m1_0.status,
+        m1_0.updated_at 
+    from
+        meeting m1_0 
+    where
+        m1_0.id=?
+Hibernate: 
+    select
+        au1_0.id,
+        au1_0.created_at,
+        au1_0.department_id,
+        au1_0.email,
+        au1_0.full_name,
+        au1_0.password,
+        au1_0.primary_portal,
+        au1_0.study_group_id,
+        au1_0.updated_at,
+        au1_0.username 
+    from
+        app_user au1_0 
+    where
+        au1_0.username=?
+Hibernate: 
+    select
+        ai1_0.id,
+        ai1_0.average_score,
+        ai1_0.created_at,
+        ai1_0.meeting_id,
+        ai1_0.order_number,
+        ai1_0.overall_average_score,
+        ai1_0.presentation_duration,
+        ai1_0.presentation_materials,
+        ai1_0.scheduled_time,
+        ai1_0.student_id,
+        ai1_0.updated_at 
+    from
+        agenda_item ai1_0 
+    left join
+        meeting m1_0 
+            on m1_0.id=ai1_0.meeting_id 
+    where
+        m1_0.id=?
+Hibernate: 
+    select
+        r1_0.user_id,
+        r1_0.role 
+    from
+        user_roles r1_0 
+    where
+        r1_0.user_id=?
+Hibernate: 
+    select
+        s1_0.id,
+        s1_0.about_me,
+        s1_0.created_at,
+        s1_0.first_name,
+        s1_0.group_id,
+        s1_0.last_name,
+        s1_0.middle_name,
+        s1_0.phone,
+        s1_0.photo_url,
+        s1_0.record_book_number,
+        s1_0.supervisor_name,
+        s1_0.thesis_file_name,
+        s1_0.thesis_file_path,
+        s1_0.thesis_topic,
+        s1_0.updated_at,
+        s1_0.user_id 
+    from
+        student s1_0 
+    where
+        s1_0.id=?
+Hibernate: 
+    select
+        count(n1_0.id) 
+    from
+        notification n1_0 
+    where
+        n1_0.user_id=? 
+        and not(n1_0.is_read)
+Hibernate: 
+    select
+        s1_0.id,
+        s1_0.about_me,
+        s1_0.created_at,
+        s1_0.first_name,
+        s1_0.group_id,
+        s1_0.last_name,
+        s1_0.middle_name,
+        s1_0.phone,
+        s1_0.photo_url,
+        s1_0.record_book_number,
+        s1_0.supervisor_name,
+        s1_0.thesis_file_name,
+        s1_0.thesis_file_path,
+        s1_0.thesis_topic,
+        s1_0.updated_at,
+        s1_0.user_id 
+    from
+        student s1_0 
+    where
+        s1_0.id=?
+Hibernate: 
+    select
+        s1_0.id,
+        s1_0.about_me,
+        s1_0.created_at,
+        s1_0.first_name,
+        s1_0.group_id,
+        s1_0.last_name,
+        s1_0.middle_name,
+        s1_0.phone,
+        s1_0.photo_url,
+        s1_0.record_book_number,
+        s1_0.supervisor_name,
+        s1_0.thesis_file_name,
+        s1_0.thesis_file_path,
+        s1_0.thesis_topic,
+        s1_0.updated_at,
+        s1_0.user_id 
+    from
+        student s1_0 
+    where
+        s1_0.id=?
+Hibernate: 
+    select
+        s1_0.id,
+        s1_0.about_me,
+        s1_0.created_at,
+        s1_0.first_name,
+        s1_0.group_id,
+        s1_0.last_name,
+        s1_0.middle_name,
+        s1_0.phone,
+        s1_0.photo_url,
+        s1_0.record_book_number,
+        s1_0.supervisor_name,
+        s1_0.thesis_file_name,
+        s1_0.thesis_file_path,
+        s1_0.thesis_topic,
+        s1_0.updated_at,
+        s1_0.user_id 
+    from
+        student s1_0 
+    where
+        s1_0.id=?
+Hibernate: 
+    select
+        s1_0.id,
+        s1_0.about_me,
+        s1_0.created_at,
+        s1_0.first_name,
+        s1_0.group_id,
+        s1_0.last_name,
+        s1_0.middle_name,
+        s1_0.phone,
+        s1_0.photo_url,
+        s1_0.record_book_number,
+        s1_0.supervisor_name,
+        s1_0.thesis_file_name,
+        s1_0.thesis_file_path,
+        s1_0.thesis_topic,
+        s1_0.updated_at,
+        s1_0.user_id 
+    from
+        student s1_0 
+    where
+        s1_0.id=?

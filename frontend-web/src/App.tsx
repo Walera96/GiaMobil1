@@ -16,6 +16,8 @@ import { NotificationsPage } from './pages/NotificationsPage';
 import { StudentDashboardPage } from './pages/StudentDashboardPage';
 import { StudentProfilePage } from './pages/StudentProfilePage';
 import { TeacherDashboardPage } from './pages/TeacherDashboardPage';
+import { TeacherAssignmentsPage } from './pages/teacher/TeacherAssignmentsPage';
+import { TeacherAssignmentSubmissionsPage } from './pages/teacher/TeacherAssignmentSubmissionsPage';
 import { GroupsPage } from './pages/GroupsPage';
 import { DisciplinesPage } from './pages/DisciplinesPage';
 import { GradebookPage } from './pages/GradebookPage';
@@ -78,6 +80,8 @@ function AppRoutes() {
 
         {/* === ПОРТАЛ: ПРЕПОДАВАТЕЛЬ === */}
         <Route path="/teacher" element={<TeacherDashboardPage />} />
+        <Route path="/teacher/assignments" element={<TeacherAssignmentsPage />} />
+        <Route path="/teacher/assignments/:id/submissions" element={<TeacherAssignmentSubmissionsPage />} />
 
         {/* === ПОРТАЛ: СТУДЕНТ (задания) === */}
         <Route path="/student-portal" element={<StudentDashboardPage />} />

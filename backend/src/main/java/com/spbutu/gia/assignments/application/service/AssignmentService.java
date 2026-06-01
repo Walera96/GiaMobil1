@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -57,6 +58,7 @@ public class AssignmentService {
 
     @Transactional(readOnly = true)
     public List<AssignmentDto> findByStudent(UUID studentId) {
+        Objects.requireNonNull(studentId, "studentId must not be null");
         return assignmentRepository.findAllByTargetStudentIdsContains(studentId)
                 .stream()
                 .map(this::toDto)
@@ -65,6 +67,7 @@ public class AssignmentService {
 
     @Transactional(readOnly = true)
     public AssignmentDto findById(UUID id) {
+        Objects.requireNonNull(id, "id must not be null");
         Assignment assignment = assignmentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Задание не найдено"));
         return toDto(assignment);
@@ -72,6 +75,7 @@ public class AssignmentService {
 
     @Transactional
     public void delete(UUID id) {
+        Objects.requireNonNull(id, "id must not be null");
         assignmentRepository.deleteById(id);
     }
 

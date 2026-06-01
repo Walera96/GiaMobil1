@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -45,6 +46,8 @@ public class AssignmentSubmissionService {
 
     @Transactional
     public SubmissionDto review(UUID submissionId, ReviewDto dto, UUID teacherId) {
+        Objects.requireNonNull(submissionId, "submissionId must not be null");
+        Objects.requireNonNull(teacherId, "teacherId must not be null");
         AssignmentSubmission submission = submissionRepository.findById(submissionId)
                 .orElseThrow(() -> new RuntimeException("Сдача не найдена"));
 
@@ -78,6 +81,7 @@ public class AssignmentSubmissionService {
 
     @Transactional(readOnly = true)
     public SubmissionDto findById(UUID id) {
+        Objects.requireNonNull(id, "id must not be null");
         AssignmentSubmission submission = submissionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Сдача не найдена"));
         return toDto(submission);
