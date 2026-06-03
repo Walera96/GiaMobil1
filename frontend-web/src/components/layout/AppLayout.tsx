@@ -2,12 +2,16 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { ToastContainer } from '../ui/Toast';
+import { useToastStore } from '../../store/toastStore';
 
 interface AppLayoutProps {
   children?: React.ReactNode;
 }
 
 export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
+  const { toasts, removeToast } = useToastStore();
+
   return (
     <div className="flex h-screen bg-[var(--color-bg)]">
       <Sidebar />
@@ -17,6 +21,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           {children || <Outlet />}
         </main>
       </div>
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   );
 };

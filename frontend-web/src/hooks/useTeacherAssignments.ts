@@ -1,12 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { teacherAssignmentsApi, type AssignmentCreateRequest, type ReviewRequest, type SubmissionStatus } from '../api/assignments';
 
-/** Получить список заданий преподавателя */
-export function useTeacherAssignments() {
+/** Получить список заданий преподавателя (с пагинацией) */
+export function useTeacherAssignments(page = 0, size = 20, sort = 'createdAt,desc') {
   return useQuery({
-    queryKey: ['teacher-assignments'],
+    queryKey: ['teacher-assignments', page, size, sort],
     queryFn: async () => {
-      const { data } = await teacherAssignmentsApi.getMyAssignments();
+      const { data } = await teacherAssignmentsApi.getMyAssignments(page, size, sort);
       return data;
     },
   });

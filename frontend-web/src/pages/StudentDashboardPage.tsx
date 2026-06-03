@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useStudentProfile, useStudentGrades, useStudentAdmission, useStudentMeetingInfo, useUploadThesis, useUpdateStudentProfile } from '../hooks/useStudentProfile';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -6,7 +7,7 @@ import { Badge } from '../components/ui/Badge';
 import {
   GraduationCap, BookOpen, ClipboardCheck, FileText, CalendarDays,
   Upload, Download, MapPin, Clock, User, Hash, Award, AlertCircle,
-  CheckCircle2, XCircle, Building2
+  CheckCircle2, XCircle, Building2, ClipboardList, ChevronRight
 } from 'lucide-react';
 
 const ScoreBadge: React.FC<{ score: number }> = ({ score }) => {
@@ -26,6 +27,7 @@ export const StudentDashboardPage: React.FC = () => {
   const updateProfile = useUpdateStudentProfile();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const navigate = useNavigate();
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editThesisTopic, setEditThesisTopic] = useState('');
   const [editSupervisor, setEditSupervisor] = useState('');
@@ -139,6 +141,25 @@ export const StudentDashboardPage: React.FC = () => {
       </Card>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {/* Мои задания */}
+        <Card
+          className="cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => navigate('/student/assignments')}
+        >
+          <div className="flex items-center justify-between p-1">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+                <ClipboardList size={20} />
+              </div>
+              <div>
+                <h3 className="font-semibold text-[var(--color-text)]">Мои задания</h3>
+                <p className="text-xs text-[var(--color-text-muted)]">Задания, дедлайны и оценки</p>
+              </div>
+            </div>
+            <ChevronRight size={18} className="text-[var(--color-text-muted)]" />
+          </div>
+        </Card>
+
         {/* Мои оценки */}
         <Card>
           <div className="mb-3 flex items-center gap-2">

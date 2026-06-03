@@ -27,9 +27,9 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
+        '[format_sql]': true
         jdbc:
-          batch_size: 20
+          '[batch_size]': 20
     show-sql: true
 
   flyway:
@@ -49,7 +49,7 @@ server:
   servlet:
     context-path: /api
 
-# JWT настройки (шаг 3)
+# JWT настройки
 jwt:
   secret: ${JWT_SECRET:Z2lhLXNlY3JldC1rZXktZm9yLWp3dC1zaWduaW5nLWF0LWdpYS1hcHAtc3BidXR1}
   access-expiration: 900000      # 15 минут (мс)
@@ -57,8 +57,8 @@ jwt:
 
 logging:
   level:
-    org.springframework.security: DEBUG
-    org.flywaydb: DEBUG
+    '[org.springframework.security]': DEBUG
+    '[org.flywaydb]': DEBUG
 
 ---
 # ============================================================

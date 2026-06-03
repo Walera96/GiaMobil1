@@ -1,14 +1,13 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { useUnreadCount } from '../../hooks/useNotifications';
+import { useNotifications } from '../../hooks/useNotifications';
 import { User, Bell } from 'lucide-react';
 
 export const Header: React.FC = () => {
   const { user, roles } = useAuth();
   const navigate = useNavigate();
-  const { data: unreadData } = useUnreadCount();
-  const unreadCount = unreadData?.count || 0;
+  const { unreadCount } = useNotifications();
 
   const roleLabels: Record<string, string> = {
     SYSTEM_ADMIN: 'Системный администратор',

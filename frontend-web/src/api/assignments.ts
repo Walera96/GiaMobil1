@@ -103,9 +103,9 @@ export const teacherAssignmentsApi = {
   create: (data: AssignmentCreateRequest) =>
     api.post<Assignment>('/teacher/assignments', data),
 
-  /** Список заданий текущего преподавателя */
-  getMyAssignments: () =>
-    api.get<Assignment[]>('/teacher/assignments/my'),
+  /** Список заданий текущего преподавателя (с пагинацией) */
+  getMyAssignments: (page = 0, size = 20, sort = 'createdAt,desc') =>
+    api.get<Assignment[]>('/teacher/assignments/my', { params: { page, size, sort } }),
 
   /** Детали задания */
   getById: (id: string) =>
@@ -129,9 +129,9 @@ export const teacherAssignmentsApi = {
 /* ========== API для студента ========== */
 
 export const studentAssignmentsApi = {
-  /** Мои задания */
-  getMyAssignments: () =>
-    api.get<Assignment[]>('/student/assignments/my'),
+  /** Мои задания (с пагинацией) */
+  getMyAssignments: (status?: string, page = 0, size = 20) =>
+    api.get<Assignment[]>('/student/assignments/my', { params: { status, page, size } }),
 
   /** Детали задания */
   getById: (id: string) =>

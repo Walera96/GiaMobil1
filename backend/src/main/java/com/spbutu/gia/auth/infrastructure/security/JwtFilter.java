@@ -46,13 +46,18 @@ public class JwtFilter extends OncePerRequestFilter {
         final String jwt;
         final String username;
 
-        // Если заголовок отсутствует или не начинается с Bearer — пропускаем запрос дальше
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
+        // Поддержка токена в заголовке или query param (для SSE/EventSource)
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            jwt = authHeader.substring(7);
+        } else {
+            String tokenParam = request.getParameter("token");
+            if (tokenParam != null && !tokenParam.isBlank()) {
+                jwt = tokenParam;
+            } else {
+                filterChain.doFilter(request, response);
+                return;
+            }
         }
-
-        jwt = authHeader.substring(7);
 
         try {
             username = jwtService.extractUsername(jwt);

@@ -12,7 +12,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/grades")
-@SuppressWarnings("null")
 public class GradeController {
 
     private final GradeService gradeService;

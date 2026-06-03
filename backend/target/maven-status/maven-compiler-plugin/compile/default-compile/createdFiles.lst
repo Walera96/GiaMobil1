@@ -30,6 +30,7 @@ com\spbutu\gia\auth\web\dto\LoginRequest.class
 com\spbutu\gia\assignments\application\dto\AssignmentCreateDto.class
 com\spbutu\gia\auth\web\UserController.class
 com\spbutu\gia\core\domain\entity\deanery\DeaneryOrder.class
+com\spbutu\gia\core\application\service\NotificationSseService.class
 com\spbutu\gia\core\application\service\SseNotificationService.class
 com\spbutu\gia\core\domain\entity\testing\Question.class
 com\spbutu\gia\core\application\dto\student\StudentProtocolDto.class
@@ -57,6 +58,7 @@ com\spbutu\gia\core\domain\entity\scos\ScosExportLog$ExportStatus.class
 com\spbutu\gia\auth\domain\repository\AppUserRepository.class
 com\spbutu\gia\shared\config\JpaConfig.class
 com\spbutu\gia\core\application\dto\UpdateStudentProfileRequest.class
+com\spbutu\gia\assignments\web\AssignmentSseController.class
 com\spbutu\gia\core\application\dto\ScoreSheetStatsDto.class
 com\spbutu\gia\auth\web\dto\CreateUserRequest.class
 com\spbutu\gia\core\domain\entity\Admission.class
@@ -106,6 +108,7 @@ com\spbutu\gia\core\domain\repository\testing\QuestionRepository.class
 com\spbutu\gia\assignments\domain\vo\ScoringConfig$ScoringCriteria.class
 com\spbutu\gia\core\application\dto\student\UpdateExtendedProfileRequest.class
 com\spbutu\gia\core\application\dto\deanery\ContingentMovementDto.class
+com\spbutu\gia\core\web\NotificationSseController.class
 com\spbutu\gia\core\domain\entity\scos\ScosExportLog.class
 com\spbutu\gia\shared\config\JacksonConfig.class
 com\spbutu\gia\core\domain\repository\testing\StudentTestAttemptRepository.class
@@ -212,6 +215,7 @@ com\spbutu\gia\core\application\service\DraftDocumentService$2.class
 com\spbutu\gia\auth\application\JwtService.class
 com\spbutu\gia\core\domain\repository\DisciplineRepository.class
 com\spbutu\gia\core\web\AuditLogController.class
+com\spbutu\gia\assignments\application\service\AssignmentSseService.class
 com\spbutu\gia\core\domain\repository\testing\StudentAnswerRepository.class
 com\spbutu\gia\core\domain\entity\DraftDocument.class
 com\spbutu\gia\core\application\dto\StudentMeetingInfoDto.class

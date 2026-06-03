@@ -15,7 +15,10 @@ import {
   UserCircle,
   ListChecks,
   BarChart3,
+  ClipboardList,
+  Bell,
 } from 'lucide-react';
+import { useNotifications } from '../../hooks/useNotifications';
 
 interface NavItem {
   label: string;
@@ -38,12 +41,18 @@ const navItems: NavItem[] = [
   { label: 'Допуски', path: '/admissions', icon: <ClipboardCheck size={18} />, roles: ['SYSTEM_ADMIN', 'UNIVERSITY_ADMIN', 'METHODIST'] },
   { label: 'Табло', path: '/voting-monitor', icon: <Monitor size={18} />, roles: ['SYSTEM_ADMIN', 'UNIVERSITY_ADMIN', 'GEK_SECRETARY', 'GEK_CHAIRMAN'] },
   { label: 'Пользователи', path: '/admin', icon: <UserCircle size={18} />, roles: ['SYSTEM_ADMIN', 'UNIVERSITY_ADMIN'] },
+
+  /* === НОВЫЕ: ЗАДАНИЯ === */
+  { label: 'Задания', path: '/teacher/assignments', icon: <ClipboardList size={18} />, roles: ['SUPERVISOR', 'DEPARTMENT_HEAD'] },
+  { label: 'Мои задания', path: '/student/assignments', icon: <ClipboardList size={18} />, roles: ['STUDENT'] },
+  { label: 'Уведомления', path: '/notifications', icon: <Bell size={18} />, roles: ['SYSTEM_ADMIN', 'UNIVERSITY_ADMIN', 'METHODIST', 'GEK_SECRETARY', 'GEK_CHAIRMAN', 'GEK_MEMBER', 'STUDENT', 'DEAN', 'DEAN_SECRETARY', 'SUPERVISOR', 'DEPARTMENT_HEAD'] },
 ];
 
 export const Sidebar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { roles, logout } = useAuth();
+  const { unreadCount } = useNotifications();
 
   const filtered = navItems.filter((item) =>
     item.roles.some((r) => (roles as string[]).includes(r))
@@ -70,7 +79,12 @@ export const Sidebar: React.FC = () => {
               ].join(' ')}
             >
               {item.icon}
-              {item.label}
+              <span className="flex-1 text-left">{item.label}</span>
+              {item.path === '/notifications' && unreadCount > 0 && (
+                <span className="flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">
+                  {unreadCount}
+                </span>
+              )}
             </button>
           );
         })}

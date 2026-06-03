@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ResourceUtils;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.xhtmlrenderer.pdf.ITextRenderer;
@@ -44,7 +43,7 @@ public class VedomostPdfService {
             ITextRenderer renderer = new ITextRenderer();
             registerFonts(renderer);
 
-            String baseUrl = ResourceUtils.getURL("classpath:static/").toString();
+            String baseUrl = new ClassPathResource("static/").getURL().toString();
             renderer.setDocumentFromString(html, baseUrl);
             renderer.layout();
 

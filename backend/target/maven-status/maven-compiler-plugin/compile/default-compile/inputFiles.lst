@@ -3,6 +3,7 @@ C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\as
 C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\assignments\application\dto\ReviewDto.java
 C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\assignments\application\dto\SubmissionDto.java
 C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\assignments\application\service\AssignmentService.java
+C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\assignments\application\service\AssignmentSseService.java
 C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\assignments\application\service\AssignmentSubmissionService.java
 C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\assignments\domain\entity\Assignment.java
 C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\assignments\domain\entity\AssignmentSubmission.java
@@ -12,9 +13,11 @@ C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\as
 C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\assignments\domain\repository\AssignmentSubmissionRepository.java
 C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\assignments\domain\vo\AttachedFile.java
 C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\assignments\domain\vo\ScoringConfig.java
+C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\assignments\web\AssignmentSseController.java
 C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\assignments\web\StudentAssignmentController.java
 C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\assignments\web\TeacherAssignmentController.java
 C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\auth\application\AuthService.java
+C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\auth\application\JwtProperties.java
 C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\auth\application\JwtService.java
 C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\auth\domain\entity\AppUser.java
 C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\auth\domain\enums\UserRole.java
@@ -103,6 +106,7 @@ C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\co
 C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\core\application\service\GradeService.java
 C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\core\application\service\MeetingService.java
 C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\core\application\service\NotificationService.java
+C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\core\application\service\NotificationSseService.java
 C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\core\application\service\ProtocolService.java
 C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\core\application\service\schedule\DefenseScheduleService.java
 C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\core\application\service\scos\ScosExportService.java
@@ -207,6 +211,7 @@ C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\co
 C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\core\web\GradeController.java
 C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\core\web\MeetingController.java
 C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\core\web\NotificationController.java
+C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\core\web\NotificationSseController.java
 C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\core\web\ProtocolController.java
 C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\core\web\schedule\DefenseScheduleController.java
 C:\Users\Валера\Desktop\GIA_Mobile\backend\src\main\java\com\spbutu\gia\core\web\scos\ScosExportController.java
